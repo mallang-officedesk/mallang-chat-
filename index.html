@@ -2121,6 +2121,26 @@ function saveApiKey(){
   localStorage.setItem('mallang_api',key);
   document.getElementById('api-modal').classList.remove('show');
 }
+
+
+// 전역 함수로 노출
+window.selectLang = selectLang;
+window.resetLang = resetLang;
+window.closeMenu = closeMenu;
+window.sendMessage = sendMessage;
+window.openStaff = openStaff;
+window.closeStaff = closeStaff;
+window.sendLocationMsg = sendLocationMsg;
+window.sendWechatPay = sendWechatPay;
+window.sendPaypal = sendPaypal;
+window.sendJapanPay = sendJapanPay;
+window.insertLink = insertLink;
+window.staffSend = staffSend;
+window.saveApiKey = saveApiKey;
+window.copyReserveForm = copyReserveForm;
+window.openMenuFromChat = openMenuFromChat;
+window.deleteMsg = deleteMsg;
+
 </script>
 </body>
 </html>
