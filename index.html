@@ -2,895 +2,544 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MALLANG — Beauty Concierge</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>MALLANG Beauty Chat</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 <style>
-:root {
-  --bg: #f5f0e8;
-  --bg2: #ede8de;
-  --bg3: #e6e0d4;
-  --white: #fdfbf7;
-  --black: #1a1714;
-  --text: #2c2820;
-  --text2: #6d6358;
-  --text3: #9e9088;
-  --gold: #d8b691;
-  --gold-light: #b8961e;
-  --gold-bg: rgba(139,105,20,0.1);
-  --border: rgba(44,40,32,0.1);
-  --border2: rgba(44,40,32,0.2);
-}
-
 * { margin: 0; padding: 0; box-sizing: border-box; }
-
-body {
-  font-family: 'Noto Sans KR', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  height: 100vh;
+html { height: 100%; overflow: hidden; touch-action: pan-y; }
+body { 
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #FAF9F6;
   overflow: hidden;
-}
-
-/* ━━━ 언어 선택 화면 ━━━ */
-#lang-screen {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg);
-  z-index: 100;
-  transition: opacity 0.5s, transform 0.5s;
-}
-
-#lang-screen.hide {
-  opacity: 0;
-  transform: translateY(-12px);
-  pointer-events: none;
-}
-
-.lang-logo {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 2.8rem;
-  font-weight: 300;
-  letter-spacing: 0.3em;
-  color: var(--text);
-  margin-bottom: 0.5rem;
-}
-
-.lang-sub {
-  font-size: 0.68rem;
-  letter-spacing: 0.2em;
-  color: var(--gold);
-  text-transform: uppercase;
-  margin-bottom: 2.5rem;
-}
-
-.lang-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.6rem;
-  width: min(400px, 90vw);
-}
-
-.lang-btn {
-  background: var(--white);
-  border: 1px solid var(--border2);
-  color: var(--text);
-  padding: 0.9rem 0.5rem;
-  cursor: pointer;
-  font-family: inherit;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.3rem;
-  transition: all 0.25s;
-  position: relative;
-  overflow: hidden;
-}
-
-.lang-btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--gold);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.25s;
-  z-index: -1;
-}
-
-.lang-btn:hover::before {
-  transform: scaleX(1);
-}
-
-.lang-btn:hover {
-  border-color: var(--gold);
-  color: var(--white);
-}
-
-.lang-btn .flag {
-  font-size: 1.3rem;
-}
-
-.lang-btn .lname {
-  font-size: 0.8rem;
-  font-weight: 500;
-}
-
-.lang-btn .lnative {
-  font-size: 0.63rem;
-  opacity: 0.6;
-}
-
-.lang-btn.span3 {
-  grid-column: span 3;
-  flex-direction: row;
-  justify-content: center;
-  gap: 0.6rem;
-}
-
-/* ━━━ 메인 앱 ━━━ */
-#app {
-  display: none;
-  height: 100vh;
-}
-
-.app-container {
-  display: flex;
+  width: 100%;
   height: 100%;
+  height: 100dvh;
 }
+.screen { display: none; height: 100%; width: 100%; overflow-x: hidden; flex-direction: column; }
+@supports (height: 100dvh) { .screen { height: 100dvh; } }
+.screen.active { display: flex; }
 
-/* 왼쪽 사이드바 */
-.sidebar {
-  width: 200px;
-  background: var(--white);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  padding: 1rem 0;
-}
+/* === 로딩 === */
+.loading-screen { align-items: center; justify-content: center; }
+.loading-spinner { width: 30px; height: 30px; border: 3px solid #E5E5E5; border-top-color: #C9A063; border-radius: 50%; animation: spin 0.8s linear infinite; margin-top: 1rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-.sidebar-btn {
-  background: none;
-  border: none;
-  padding: 1rem 1.2rem;
-  text-align: left;
+/* === 공통 === */
+.logo { font-size: 2.5rem; font-weight: 300; letter-spacing: 0.3em; margin-bottom: 1rem; }
+.subtitle { color: #666; margin-bottom: 3rem; }
+.gold-btn { padding: 0.8rem 2rem; background: #C9A063; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; width: 100%; }
+.gold-btn:hover { background: #B8914F; }
+.gold-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+/* === 언어 선택 === */
+.lang-screen { align-items: center; justify-content: center; padding: 2rem; }
+.lang-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; max-width: 400px; width: 100%; }
+.lang-btn {
+  padding: 1.5rem;
+  border: 2px solid #E5E5E5;
+  background: white;
+  border-radius: 12px;
   cursor: pointer;
-  font-family: inherit;
-  font-size: 0.85rem;
-  color: var(--text);
-  transition: all 0.2s;
-  border-left: 3px solid transparent;
+  font-size: 1rem;
+  transition: all 0.3s;
 }
+.lang-btn:hover { border-color: #C9A063; transform: translateY(-2px); }
 
-.sidebar-btn:hover {
-  background: var(--bg);
-  border-left-color: var(--gold);
-  color: var(--gold);
-}
+/* === 로그인/회원가입 === */
+.auth-screen { align-items: center; justify-content: center; padding: 2rem; }
+.auth-form { width: 100%; max-width: 380px; }
+.auth-form h2 { text-align: center; margin-bottom: 1.5rem; }
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; margin-bottom: 0.3rem; font-size: 0.9rem; color: #555; }
+.form-group input, .form-group select { width: 100%; padding: 0.7rem; border: 1px solid #DDD; border-radius: 8px; font-size: 1rem; }
+.auth-btn { width: 100%; padding: 0.8rem; background: #C9A063; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; margin-top: 0.5rem; }
+.auth-btn:hover { background: #B8914F; }
+.auth-btn:disabled { background: #ccc; }
+.auth-error { background: #fee; color: #c33; padding: 0.7rem; border-radius: 8px; display: none; margin-bottom: 1rem; font-size: 0.9rem; }
+.auth-switch { text-align: center; margin-top: 1rem; font-size: 0.9rem; color: #666; }
+.auth-switch a { color: #C9A063; cursor: pointer; text-decoration: underline; }
+.role-toggle { display: flex; border: 2px solid #E5E5E5; border-radius: 8px; overflow: hidden; margin-bottom: 1.5rem; }
+.role-toggle button { flex: 1; padding: 0.6rem; border: none; background: white; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
+.role-toggle button.active { background: #C9A063; color: white; }
+.designer-fields { display: none; }
+.designer-fields.show { display: block; }
 
-.sidebar-btn.reserve {
-  color: var(--gold);
-  font-weight: 500;
-  margin-top: 1rem;
-}
-
-/* 오른쪽 메인 영역 */
-.main-area {
-  flex: 1;
+/* === 채팅 목록 === */
+.chatlist-header {
+  background: white;
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid #E5E5E5;
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
 }
-
-/* 상단 네비 */
-.nav {
-  background: var(--white);
-  padding: 0.8rem 1.2rem;
+.chatlist-header h2 { font-size: 1.2rem; }
+.chatlist-header-btns { display: flex; gap: 0.5rem; }
+.chatlist-header-btns button {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #DDD;
+  background: white;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.chatlist-items { flex: 1; overflow-y: auto; }
+.chatlist-item {
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid #F0F0F0;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--border);
+  gap: 0.8rem;
+  transition: background 0.2s;
 }
-
-.nav-brand {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.4rem;
-  letter-spacing: 0.2em;
-  font-weight: 300;
+.chatlist-item:hover { background: #F9F5ED; }
+.chatlist-avatar {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: #C9A063;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  flex-shrink: 0;
 }
+.chatlist-avatar.designer { background: #7C6BC4; }
+.chatlist-avatar.admin { background: #C9A063; }
+.chatlist-info { flex: 1; min-width: 0; }
+.chatlist-name { font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem; }
+.chatlist-preview { color: #888; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 0.2rem; }
+.chatlist-meta { text-align: right; flex-shrink: 0; }
+.chatlist-time { font-size: 0.75rem; color: #999; }
+.chatlist-unread { background: #C9A063; color: white; font-size: 0.7rem; padding: 2px 7px; border-radius: 10px; margin-top: 0.3rem; display: inline-block; }
+.no-chats { padding: 3rem; text-align: center; color: #999; }
 
-.nav-lang {
-  font-size: 0.75rem;
-  color: var(--gold);
-  cursor: pointer;
-  padding: 0.3rem 0.6rem;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  transition: all 0.2s;
+/* === 친구 추가 모달 === */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.4);
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
 }
-
-.nav-lang:hover {
-  background: var(--gold);
-  color: var(--white);
-  border-color: var(--gold);
+.modal-overlay.active { display: flex; }
+.modal-box {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 360px;
 }
+.modal-box h3 { margin-bottom: 1rem; text-align: center; }
+.modal-box input { width: 100%; padding: 0.7rem; border: 1px solid #DDD; border-radius: 8px; font-size: 1rem; margin-bottom: 0.8rem; }
+.modal-result { margin-top: 0.5rem; padding: 0.8rem; border-radius: 8px; display: none; }
+.modal-result.found { display: block; background: #F9F5ED; }
+.modal-result.not-found { display: block; background: #FEE; color: #c33; text-align: center; }
+.modal-result-user { display: flex; align-items: center; gap: 0.8rem; }
+.modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; position: absolute; right: 1rem; top: 0.5rem; }
 
-/* 메시지 영역 */
+/* === 채팅방 === */
+.chatroom-header {
+  background: white;
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid #E5E5E5;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+.back-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; padding: 0.2rem; }
+.chatroom-header-info { flex: 1; }
+.chatroom-header-info h3 { font-size: 1rem; }
+.chatroom-header-info p { font-size: 0.8rem; color: #888; }
+.lang-badge { background: #F0F0F0; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem; }
+.logout-btn { background: none; border: 1px solid #DDD; padding: 0.3rem 0.8rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
 .messages {
   flex: 1;
   overflow-y: auto;
-  padding: 1rem 1.2rem;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 0.5rem;
+  background: #FAF9F6;
 }
-
-.msg {
-  max-width: 75%;
-  padding: 0.7rem 1rem;
-  border-radius: 1rem;
-  font-size: 0.85rem;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  word-break: break-word;
+.message { display: flex; flex-direction: column; }
+.from-me { align-items: flex-end; }
+.from-them { align-items: flex-start; }
+.msg-bubble {
+  max-width: 90%;
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  word-wrap: break-word;
   position: relative;
+  letter-spacing: 0.03em;
+  line-height: 1.7;
+}
+.from-me .msg-bubble { background: #C9A063; color: white; border-bottom-right-radius: 4px; }
+.from-them .msg-bubble { background: white; border: 1px solid #E5E5E5; border-bottom-left-radius: 4px; }
+.msg-time { font-size: 0.7rem; color: #999; margin-top: 0.2rem; }
+.msg-delete { position: absolute; top: -8px; right: -8px; background: #ff4444; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 0.7rem; cursor: pointer; display: none; line-height: 20px; text-align: center; }
+.msg-bubble:hover .msg-delete { display: block; }
+.msg-highlight { background: #ff6b6b; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+.msg-img { max-width: 240px; border-radius: 8px; margin: 4px 0; display: block; cursor: pointer; }
+.msg-link { color: inherit; text-decoration: underline; word-break: break-all; }
+.msg-link-btn {
+  display: inline-block;
+  padding: 8px 16px;
+  background: #C9A063;
+  color: white !important;
+  border-radius: 20px;
+  text-decoration: none;
+  margin: 4px 0;
+  font-size: 0.85rem;
 }
 
-.from-me {
-  align-self: flex-end;
-  background: var(--gold);
-  color: var(--white);
-  border-bottom-right-radius: 0.3rem;
+/* === 입력 영역 === */
+.input-area {
+  background: white;
+  padding: 0.8rem;
+  padding-bottom: max(1rem, calc(0.8rem + env(safe-area-inset-bottom, 10px)));
+  border-top: 1px solid #E5E5E5;
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
 }
-
-/* 취소 버튼 */
-.msg-delete-btn {
-  position: absolute;
-  top: 50%;
-  right: -35px;
-  transform: translateY(-50%);
-  width: 28px;
-  height: 28px;
-  background: rgba(220, 53, 69, 0.9);
-  color: white;
-  border: none;
+.msg-input {
+  flex: 1;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #DDD;
+  border-radius: 20px;
+  font-size: 0.95rem;
+  resize: none;
+  overflow-y: hidden;
+  max-height: 120px;
+  font-family: inherit;
+}
+.img-upload-btn {
+  width: 36px; height: 36px;
   border-radius: 50%;
-  font-size: 0.75rem;
+  border: 1px solid #DDD;
+  background: white;
   cursor: pointer;
-  opacity: 0;
-  transition: all 0.2s;
+  font-size: 1.1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
-  line-height: 1;
+  flex-shrink: 0;
 }
-
-.msg.deletable:hover .msg-delete-btn {
-  opacity: 1;
-}
-
-.msg-delete-btn:hover {
-  background: #c82333;
-  transform: translateY(-50%) scale(1.1);
-}
-
-.msg-delete-btn:active {
-  transform: translateY(-50%) scale(0.95);
-}
-
-.from-them {
-  align-self: flex-start;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-bottom-left-radius: 0.3rem;
-}
-
-.msg-time {
-  font-size: 0.65rem;
-  color: var(--text3);
-  margin-top: 0.3rem;
-  text-align: right;
-}
-
-.typing {
-  align-self: flex-start;
-  background: var(--bg2);
-  color: var(--text2);
-  padding: 0.5rem 1rem;
-  border-radius: 1rem;
-  font-size: 0.8rem;
-  display: none;
-}
-
-/* 입력창 */
-.input-area {
-  background: var(--white);
-  padding: 0.8rem 1.2rem;
-  border-top: 1px solid var(--border);
-  display: flex;
-  gap: 0.6rem;
-  align-items: flex-end;
-}
-
-.input-box {
-  flex: 1;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  padding: 0.7rem;
-  font-family: inherit;
-  font-size: 0.85rem;
-  resize: none;
-  max-height: 100px;
-  border-radius: 0.5rem;
-}
-
 .send-btn {
-  background: var(--gold);
-  color: var(--white);
+  padding: 0.5rem 1rem;
+  background: #C9A063;
+  color: white;
   border: none;
-  padding: 0.7rem 1.2rem;
+  border-radius: 20px;
   cursor: pointer;
-  font-size: 1.2rem;
-  border-radius: 0.5rem;
-  transition: all 0.2s;
+  font-size: 0.9rem;
+  flex-shrink: 0;
 }
+.img-preview { position: relative; margin-bottom: 0.5rem; }
+.img-preview img { max-height: 100px; border-radius: 8px; }
+.img-preview-remove { position: absolute; top: -6px; right: -6px; background: #ff4444; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-size: 0.8rem; }
 
-.send-btn:hover {
-  background: var(--gold-light);
-  transform: scale(1.05);
+/* === 메뉴 사이드바 === */
+.menu-sidebar {
+  width: 180px;
+  min-width: 180px;
+  background: white;
+  border-right: 1px solid #E5E5E5;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  transition: width 0.3s, min-width 0.3s;
 }
-
-/* 하단 */
-.footer {
-  padding: 0.5rem;
-  text-align: center;
-  font-size: 0.65rem;
-  color: var(--text3);
-  background: var(--bg2);
-}
-
-.staff-btn {
-  position: fixed;
-  bottom: 5rem;
-  right: 1rem;
-  background: var(--gold);
-  color: var(--white);
-  border: none;
-  padding: 0.8rem 1.2rem;
+.menu-sidebar.expanded { width: 320px; min-width: 320px; }
+.menu-tabs { display: flex; flex-direction: column; }
+.menu-tab {
+  padding: 1rem 1.2rem;
   cursor: pointer;
-  border-radius: 2rem;
-  font-size: 0.75rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  z-index: 50;
+  font-size: 0.95rem;
+  border-bottom: 1px solid #F0F0F0;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
+.menu-tab:hover, .menu-tab.active { background: #F9F5ED; color: #C9A063; }
+.menu-content { padding: 0.8rem; font-size: 0.85rem; overflow-y: auto; flex: 1; }
+.menu-content h4 { margin: 0.8rem 0 0.3rem; color: #C9A063; font-size: 0.9rem; }
+.price-row { display: flex; justify-content: space-between; padding: 0.3rem 0; border-bottom: 1px solid #F8F8F8; font-size: 0.85rem; }
+.divider { height: 1px; background: #E5E5E5; margin: 0.8rem 0; }
+.menu-content .note { font-size: 0.8rem; color: #888; margin: 0.3rem 0; }
+.menu-content .link { color: #C9A063; text-decoration: underline; cursor: pointer; }
 
-.staff-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
-
-/* 스태프 창 */
-.staff-panel {
+/* === 메뉴 오버레이 (모바일) === */
+.menu-overlay {
+  display: none;
   position: fixed;
-  bottom: -300px;
-  right: 1rem;
+  top: 0; left: 0;
+  width: 100vw; height: 100%;
+  background: rgba(0,0,0,0.3);
+  z-index: 999;
+}
+.menu-overlay.active { display: block; }
+
+/* === 스태프 화면 === */
+.staff-screen { display: none; flex-direction: row; height: 100%; }
+.customer-list {
   width: 300px;
-  background: var(--white);
-  border-radius: 1rem 1rem 0 0;
-  box-shadow: 0 -2px 20px rgba(0,0,0,0.15);
-  transition: bottom 0.3s;
-  z-index: 60;
-}
-
-.staff-panel.show {
-  bottom: 0;
-}
-
-.staff-content {
-  padding: 1rem;
-}
-
-.staff-header {
+  border-right: 1px solid #E5E5E5;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 0.8rem;
-  border-bottom: 1px solid var(--border);
+  flex-direction: column;
+  background: white;
 }
-
-.staff-header h3 {
-  font-size: 1rem;
-  font-weight: 500;
-  margin: 0;
-}
-
-.staff-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
+.list-header { padding: 1rem; border-bottom: 1px solid #E5E5E5; }
+.list-header h2 { margin-bottom: 0.5rem; }
+.search-box { width: 100%; padding: 0.5rem; border: 1px solid #DDD; border-radius: 6px; }
+.customer-items { overflow-y: auto; flex: 1; }
+.customer-item {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid #F0F0F0;
   cursor: pointer;
-  color: var(--text2);
-  padding: 0;
-  line-height: 1;
+  transition: background 0.2s;
 }
+.customer-item:hover, .customer-item.active { background: #F9F5ED; }
+.customer-name { font-weight: bold; font-size: 0.95rem; }
+.customer-preview { color: #888; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.customer-time { font-size: 0.75rem; color: #999; }
+.unread { background: #C9A063; color: white; font-size: 0.7rem; padding: 2px 7px; border-radius: 10px; margin-left: 0.5rem; }
+.quick-replies { padding: 0.5rem; background: #F9F9F9; border-top: 1px solid #E5E5E5; display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.quick-reply-toggle { background: none; border: 1px solid #C9A063; color: #C9A063; padding: 0.3rem 0.6rem; border-radius: 20px; cursor: pointer; font-size: 0.8rem; }
+.quick-reply-btn { background: #FFF; border: 1px solid #DDD; padding: 0.3rem 0.6rem; border-radius: 20px; cursor: pointer; font-size: 0.8rem; display: none; }
 
-.staff-buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.6rem;
+/* === 이미지 업로드 진행 === */
+.upload-progress {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.8);
+  color: white;
+  padding: 1.5rem 2rem;
+  border-radius: 12px;
+  z-index: 3000;
+  display: none;
+  text-align: center;
 }
+.upload-progress.active { display: block; }
 
-.quick-btn {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  padding: 0.8rem;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 0.85rem;
-  border-radius: 0.5rem;
-  transition: all 0.2s;
+/* === 모바일 === */
+.mobile-menu-btn { display: none !important; padding: 0.3rem 0.7rem; border: 1px solid #DDD; border-radius: 6px; background: white; cursor: pointer; font-size: 0.8rem; align-items: center; gap: 0.3rem; }
+
+@media (max-width: 600px) {
+  .mobile-menu-btn { display: inline-flex !important; }
+  .input-area { padding-bottom: 2.5rem; }
+  .staff-screen { grid-template-columns: 1fr; }
+  .customer-list { display: none; }
+  .menu-sidebar {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: 85vw;
+    height: 100%;
+    height: 100dvh;
+    z-index: 1000;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+    padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+  }
+  .menu-sidebar.mobile-open { display: flex; }
+  .menu-overlay { height: 100dvh; }
 }
-
-.quick-btn:hover {
-  background: var(--gold);
-  color: var(--white);
-  border-color: var(--gold);
-}
-
-/* 메뉴 패널 */
-/* 온라인 표시 */
-.online {
-  color: #4ade80;
-  font-size: 0.7rem;
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-
-.online::before {
-  content: '●';
-  font-size: 0.6rem;
+@media (max-width: 768px) {
+  .staff-screen { grid-template-columns: 1fr; }
+  .customer-list { display: none; }
 }
 </style>
 </head>
 <body>
 
-<!-- 언어 선택 화면 -->
-<div id="lang-screen">
-  <div class="lang-logo">MALLANG</div>
-  <div class="lang-sub">Premium Beauty & Photo Studio · Gangnam, Seoul</div>
-  <div class="lang-sub" style="margin-top:-2rem;margin-bottom:2.5rem;">언어를 선택해주세요 · Select your language</div>
-  
+<!-- 로딩 -->
+<div class="screen active loading-screen" id="loadingScreen">
+  <div class="logo">MALLANG</div>
+  <div class="loading-spinner"></div>
+</div>
+
+<!-- 언어 선택 -->
+<div class="screen lang-screen" id="langScreen">
+  <div class="logo">MALLANG</div>
+  <div class="subtitle">Premium Beauty & Photo Studio</div>
   <div class="lang-grid">
-    <button class="lang-btn" data-lang="ko">
-      <span class="flag">🇰🇷</span>
-      <span class="lname">한국어</span>
-      <span class="lnative">Korean</span>
-    </button>
-    
-    <button class="lang-btn" data-lang="zh">
-      <span class="flag">🇨🇳</span>
-      <span class="lname">中文</span>
-      <span class="lnative">Chinese</span>
-    </button>
-    
-    <button class="lang-btn" data-lang="ja">
-      <span class="flag">🇯🇵</span>
-      <span class="lname">日本語</span>
-      <span class="lnative">Japanese</span>
-    </button>
-    
-    <button class="lang-btn" data-lang="th">
-      <span class="flag">🇹🇭</span>
-      <span class="lname">ภาษาไทย</span>
-      <span class="lnative">Thai</span>
-    </button>
-    
-    <button class="lang-btn" data-lang="en">
-      <span class="flag">🌐</span>
-      <span class="lname">English</span>
-      <span class="lnative">English</span>
-    </button>
-    
-    <button class="lang-btn span3" data-lang="auto">
-      <span class="flag">✦</span>
-      <span class="lname">Other Language</span>
-      <span class="lnative">자동 감지 · Auto detect</span>
-    </button>
+    <button class="lang-btn" onclick="selectLang('ko')">🇰🇷 한국어</button>
+    <button class="lang-btn" onclick="selectLang('en')">🌐 English</button>
+    <button class="lang-btn" onclick="selectLang('zh')">🇨🇳 中文</button>
+    <button class="lang-btn" onclick="selectLang('ja')">🇯🇵 日本語</button>
+    <button class="lang-btn" onclick="selectLang('th')">🇹🇭 ภาษาไทย</button>
+    <button class="lang-btn" onclick="selectLang('vi')">🇻🇳 Tiếng Việt</button>
   </div>
 </div>
 
-<!-- 메인 앱 -->
-<div id="app">
-  <div class="app-container">
-    <!-- 왼쪽 사이드바 -->
-    <div class="sidebar" id="sidebar">
-      <!-- 동적 생성 -->
+<!-- 로그인 -->
+<div class="screen auth-screen" id="loginScreen">
+  <div class="logo" style="margin-bottom: 2rem;">MALLANG</div>
+  <div class="auth-form">
+    <h2>로그인 / Login</h2>
+    <div class="auth-error" id="loginError"></div>
+    <div class="form-group">
+      <label>이메일 / Email</label>
+      <input type="email" id="loginEmail" placeholder="email@example.com">
     </div>
-    
-    <!-- 오른쪽 메인 영역 -->
-    <div class="main-area">
-      <nav class="nav">
-        <div class="nav-brand">MALLANG</div>
-        <div class="online">● Online</div>
-        <div class="nav-lang" id="lang-badge">🌐 EN</div>
-      </nav>
-      
-      <div class="messages" id="messages">
-        <div class="typing" id="typing">Our team will reply shortly</div>
-      </div>
-      
-      <div class="input-area">
-        <textarea class="input-box" id="msg-input" rows="1" placeholder="Type your message..."></textarea>
-        <button class="send-btn" id="send-btn">➤</button>
-      </div>
-      
-      
-      <div class="footer">
-        AI Translation Powered · MALLANG AI
-      </div>
+    <div class="form-group">
+      <label>비밀번호 / Password</label>
+      <input type="password" id="loginPw" placeholder="••••••">
     </div>
-  </div>
-  
-  <button class="staff-btn" id="staff-btn">STAFF ⚙</button>
-</div>
-
-<!-- 스태프 창 -->
-<div class="staff-panel" id="staff-panel">
-  <div class="staff-content">
-    <div class="staff-header">
-      <h3>빠른답변</h3>
-      <button class="staff-close" id="staff-close">✕</button>
-    </div>
-    <div class="staff-buttons">
-      <button class="quick-btn" data-type="address">📍 주소</button>
-      <button class="quick-btn" data-type="complete">✅ 예약완료</button>
-      <button class="quick-btn" data-type="wechat">🇨🇳 위챗</button>
-      <button class="quick-btn" data-type="paypal">💳 페이팔</button>
-      <button class="quick-btn" data-type="japan">🇯🇵 일본</button>
+    <button class="auth-btn" onclick="doLogin()">로그인 / Login</button>
+    <div class="auth-switch">
+      계정이 없으신가요? <a onclick="showScreen('signupScreen')">회원가입 / Sign Up</a>
     </div>
   </div>
 </div>
 
+<!-- 회원가입 -->
+<div class="screen auth-screen" id="signupScreen">
+  <div class="logo" style="margin-bottom: 2rem;">MALLANG</div>
+  <div class="auth-form">
+    <h2>회원가입 / Sign Up</h2>
+    <div class="auth-error" id="signupError"></div>
+    <div class="role-toggle" id="roleToggle">
+      <button class="active" onclick="setRole('customer')">👤 고객 / Customer</button>
+      <button onclick="setRole('designer')">✂️ 디자이너 / Designer</button>
+    </div>
+    <div class="form-group">
+      <label>이름 / Name *</label>
+      <input type="text" id="signupName" placeholder="Hong Gildong">
+    </div>
+    <div class="designer-fields" id="designerFields">
+      <div class="form-group">
+        <label>프로필 ID * (영문, 친구 추가에 사용)</label>
+        <input type="text" id="signupProfileId" placeholder="Jina" oninput="this.value = this.value.replace(/[^a-zA-Z0-9_]/g, '')">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>이메일 / Email *</label>
+      <input type="email" id="signupEmail" placeholder="email@example.com">
+    </div>
+    <div class="form-group">
+      <label>비밀번호 / Password *</label>
+      <input type="password" id="signupPw" placeholder="6자 이상 / 6+ characters">
+    </div>
+    <button class="auth-btn" onclick="doSignup()">회원가입 / Sign Up</button>
+    <div class="auth-switch">
+      이미 계정이 있으신가요? <a onclick="showScreen('loginScreen')">로그인 / Login</a>
+    </div>
+  </div>
+</div>
 
+<!-- 채팅 목록 -->
+<div class="screen" id="chatListScreen">
+  <div class="chatlist-header">
+    <h2 id="chatListTitle">채팅</h2>
+    <div class="chatlist-header-btns">
+      <button onclick="showPriceMenu()" id="priceMenuBtn" style="display:none;">☰ Price</button>
+      <button onclick="showFriendModal()">+ 친구추가</button>
+      <button onclick="doLogout()" style="font-size:0.8rem;">로그아웃</button>
+    </div>
+  </div>
+  <div class="chatlist-items" id="chatListItems">
+    <div class="no-chats">채팅이 없습니다</div>
+  </div>
+</div>
+
+<!-- 친구 추가 모달 -->
+<div class="modal-overlay" id="friendModal">
+  <div class="modal-box" style="position:relative;">
+    <button class="modal-close" onclick="closeFriendModal()">×</button>
+    <h3>🔍 친구 추가 / Add Friend</h3>
+    <p style="font-size:0.85rem; color:#888; margin-bottom:1rem; text-align:center;" id="friendSearchHint">디자이너 ID를 입력하세요</p>
+    <input type="text" id="friendSearchInput" placeholder="ID 입력 (예: Jina)" oninput="this.value = this.value.replace(/[^a-zA-Z0-9_]/g, '')">
+    <button class="gold-btn" onclick="searchFriend()">검색 / Search</button>
+    <div class="modal-result" id="friendResult"></div>
+  </div>
+</div>
+
+<!-- 채팅방 -->
+<div class="screen" id="chatRoomScreen">
+  <div class="chatroom-header">
+    <button class="back-btn" onclick="backToChatList()">←</button>
+    <div class="chatroom-header-info">
+      <h3 id="roomPartnerName">-</h3>
+      <p id="roomPartnerInfo"></p>
+    </div>
+    <button class="mobile-menu-btn" id="roomPriceBtn" onclick="toggleMobileMenu()" style="display:none;">☰ Price</button>
+    <div class="lang-badge" id="roomPartnerLang"></div>
+  </div>
+  <!-- 메뉴 사이드바 (오버레이) -->
+  <div class="menu-overlay" id="menuOverlay" onclick="closeMobileMenu()"></div>
+  <div class="menu-sidebar" id="menuSidebar">
+    <div class="menu-tabs">
+      <div class="menu-tab active" onclick="showMenu('makeup')">💄 메이크업</div>
+      <div class="menu-tab" onclick="showMenu('hair')">💇 헤어</div>
+      <div class="menu-tab" onclick="showMenu('spa')">🧖 스파</div>
+      <div class="menu-tab" onclick="showMenu('photo')">📷 포토</div>
+      <div class="menu-tab" onclick="showMenu('booking')">📅 예약하기</div>
+    </div>
+    <div class="menu-content" id="menuContent"></div>
+  </div>
+  <div class="messages" id="chatMessages"></div>
+  <div id="imgPreviewArea"></div>
+  <div class="input-area">
+    <button class="img-upload-btn" onclick="document.getElementById('imageInput').click()">📷</button>
+    <input type="file" id="imageInput" accept="image/*" style="display:none;" onchange="previewImage(event)">
+    <textarea class="msg-input" id="chatInput" rows="1" placeholder="메시지를 입력하세요..."></textarea>
+    <button class="send-btn" onclick="sendChatMsg()">전송</button>
+  </div>
+</div>
+
+<!-- 이미지 업로드 진행 -->
+<div class="upload-progress" id="uploadProgress">📤 이미지 업로드 중...</div>
+
+<!-- 스태프 화면 -->
+<div class="screen staff-screen" id="staffScreen">
+  <div class="customer-list">
+    <div class="list-header">
+      <h2>고객 목록</h2>
+      <input type="text" class="search-box" id="searchBox" placeholder="검색..." oninput="searchCustomers()">
+    </div>
+    <div class="customer-items" id="customerList"></div>
+  </div>
+  <div style="display: flex; flex-direction: column; flex: 1;">
+    <div class="chat-header" style="background:white;padding:1rem;border-bottom:1px solid #E5E5E5;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <h3 id="selectedName">고객을 선택하세요</h3>
+        <p style="font-size:0.85rem;color:#666;" id="selectedInfo"></p>
+      </div>
+      <div class="lang-badge" id="selectedLang"></div>
+    </div>
+    <div class="messages" id="staffMsg"></div>
+    <div class="quick-replies" id="quickReplies">
+      <button class="quick-reply-toggle" onclick="toggleQuickReplies()">⚡ 빠른답변</button>
+      <button class="quick-reply-btn" onclick="quickReply('address')">📍 주소</button>
+      <button class="quick-reply-btn" onclick="quickReply('confirmed')">✅ 예약완료</button>
+      <button class="quick-reply-btn" onclick="quickReply('wechat')">🇨🇳 위챗</button>
+      <button class="quick-reply-btn" onclick="quickReply('paypal')">💳 페이팔</button>
+      <button class="quick-reply-btn" onclick="quickReply('japan')">🇯🇵 일본</button>
+    </div>
+    <div class="input-area">
+      <textarea class="msg-input" id="staffInput" rows="1" placeholder="메시지를 입력하세요..."></textarea>
+      <button class="send-btn" onclick="sendStaffMsg()">전송</button>
+    </div>
+  </div>
+</div>
 
 <script>
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 빠른답변 데이터
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const TRANSLATED_QUICK_REPLIES = {
-  address: {
-    ko: `📍 말랑뷰티 오시는 길
-
-21-3, Seolleung-ro 161-gil, Gangnam-gu, Seoul, Republic of Korea
-(kor. 서울시 강남구 신사동 662-10 )
-
-🚇 지하철: 선릉역 5번 출구 도보 5분
-🚌 버스: 강남구청 정류장 하차
-
-📱 네이버맵에서 "말랑뷰티" 검색`,
-
-    en: `📍 MALLANG Beauty Location
-
-21-3, Seolleung-ro 161-gil, Gangnam-gu, Seoul, Republic of Korea
-(kor. 서울시 강남구 신사동 662-10)
-
-🚇 Subway: 5 min walk from Seolleung Station Exit 5
-🚌 Bus: Get off at Gangnam-gu Office stop
-
-📱 Search "MALLANG Beauty" on Naver Map`,
-
-    zh: `📍 MALLANG美容院 位置
-
-21-3, Seolleung-ro 161-gil, Gangnam-gu, Seoul, Republic of Korea
-(韩文: 서울시 강남구 신사동 662-10)
-
-🚇 地铁: 宣陵站5号出口步行5分钟
-🚌 公交: 江南区厅站下车
-
-📱 Naver地图搜索"말랑뷰티"`,
-
-    ja: `📍 MALLANG ビューティー 場所
-
-21-3, Seolleung-ro 161-gil, Gangnam-gu, Seoul, Republic of Korea
-(韓国語: 서울시 강남구 신사동 662-10)
-
-🚇 地下鉄: 宣陵駅5番出口から徒歩5分
-🚌 バス: 江南区庁停留所下車
-
-📱 Naverマップで「말랑뷰티」検索`,
-
-    th: `📍 ที่ตั้ง MALLANG Beauty
-
-21-3, Seolleung-ro 161-gil, Gangnam-gu, Seoul, Republic of Korea
-(เกาหลี: 서울시 강남구 신사동 662-10)
-
-🚇 รถไฟใต้ดิน: เดิน 5 นาทีจากสถานี Seolleung ทางออก 5
-🚌 รถบัส: ลงที่ป้าย Gangnam-gu Office
-
-📱 ค้นหา "말랑뷰티" ใน Naver Map`
-  },
-
-  complete: {
-    ko: `✅ 예약 완료 안내
-
-📌 예약 시 주의사항
-
-• 예약 시간 10분 이상 지각 시 자동 취소되며 예약금은 환불되지 않습니다.
-• 예약 변경·취소는 예약일 2일 전 오후 6시(KST)까지 가능하며, 이후에는 환불이 불가합니다.
-
-💇💄 방문 전 준비사항
-
-• 헤어 스타일링 예약 시: 당일 오전 집 또는 숙소에서 샴푸 후 린스나 헤어제품 사용하지 말고 방문해 주세요.
-  (커트 예약은 샴푸 포함 / 오전 11시 이전 샴푸 불가)
-• 메이크업 예약 시: 기초 케어만 하고 민낯으로 방문해 주세요.
-• 콘택트렌즈는 메이크업 시작 전에 반드시 착용을 완료해 주세요.
-
-⏰ 중요 안내
-
-• 현장 상황에 따라 불가피한 대기 시간이 발생할 수 있습니다.
-• 늦게 오시면 다른 예약 손님들에게 막대한 피해를 줄 수 있으니 제발 예약 시간 안에 도착해 주시길 부탁드립니다.
-
-예약 해주셔서 감사합니다 💕`,
-
-    en: `✅ Reservation Confirmed
-
-📌 Important Notice
-
-• Arrivals more than 10 minutes late will be automatically canceled with no deposit refund.
-• Changes or cancellations must be made by 6:00 PM (KST), two days before your appointment.
-
-💇💄 Before Your Visit
-
-• Hair Styling: Please shampoo at home/hotel in the morning without using conditioner or styling products.
-  (Cut service includes shampoo / No shampoo service before 11 AM)
-• Makeup: Please arrive with a clean face after basic skincare only.
-• Contact lenses must be inserted before makeup begins.
-
-⏰ Please Note
-
-• Wait times may occur depending on salon conditions.
-• Late arrivals significantly impact other clients. Please arrive on time.
-
-Thank you for your reservation 💕`,
-
-    zh: `✅ 预约确认
-
-📌 注意事项
-
-• 迟到10分钟以上将自动取消，预约金不予退还。
-• 预约日2天前下午6点（韩国时间）前可以变更或取消，之后无法退款。
-
-💇💄 到店前准备
-
-• 美发造型: 当天上午在家或酒店洗头后，请勿使用护发素或造型产品。
-  (剪发包含洗头 / 上午11点前无法洗头)
-• 化妆: 请做好基础护肤后素颜到店。
-• 隐形眼镜请在化妆前佩戴完毕。
-
-⏰ 重要提示
-
-• 现场情况可能导致等待时间。
-• 迟到会严重影响其他顾客，请务必准时到达。
-
-感谢您的预约 💕`,
-
-    ja: `✅ 予約完了のご案内
-
-📌 ご注意事項
-
-• 予約時間より10分以上遅刻の場合、自動キャンセルとなり予約金は返金されません。
-• 予約日の2日前18:00（韓国時間）まで変更・キャンセル可能です。それ以降は返金不可となります。
-
-💇💄 ご来店前の準備
-
-• ヘアスタイリング: 当日午前中にご自宅または宿泊先でシャンプー後、リンスやヘア製品を使用せずにご来店ください。
-  (カット予約はシャンプー込み / 午前11時前のシャンプー不可)
-• メイク: 基礎ケアのみですっぴんでご来店ください。
-• コンタクトレンズはメイク開始前に必ず装着完了してください。
-
-⏰ 重要なお知らせ
-
-• 現場状況により待ち時間が発生する場合があります。
-• 遅刻は他のお客様に大きな影響を与えますので、必ず予約時間内にご来店ください。
-
-ご予約ありがとうございます 💕`,
-
-    th: `✅ ยืนยันการจอง
-
-📌 ข้อควรระวัง
-
-• มาสาย 10 นาทีขึ้นไปจะถูกยกเลิกอัตโนมัติ และไม่คืนเงินมัดจำ
-• สามารถเปลี่ยนแปลงหรือยกเลิกได้ถึง 18:00 น. (เวลาเกาหลี) 2 วันก่อนวันนัด หลังจากนั้นไม่สามารถคืนเงินได้
-
-💇💄 การเตรียมตัวก่อนมา
-
-• ทำผม: กรุณาสระผมที่บ้านหรือที่พักในตอนเช้า โดยไม่ใช้ครีมนวดหรือผลิตภัณฑ์จัดแต่งทรงผม
-  (การตัดผมรวมสระผม / ไม่สามารถสระผมก่อน 11:00 น.)
-• แต่งหน้า: กรุณามาแบบหน้าเปล่าหลังทำความสะอาดผิวเบื้องต้น
-• คอนแทคเลนส์ต้องสวมเสร็จก่อนเริ่มแต่งหน้า
-
-⏰ ข้อสำคัญ
-
-• อาจมีเวลารอตามสถานการณ์
-• การมาสายส่งผลกระทบต่อลูกค้าท่านอื่นอย่างมาก กรุณามาตรงเวลา
-
-ขอบคุณสำหรับการจอง 💕`
-  }
-};
-
-// 페이팔 다국어 템플릿
-// 페이팔 다국어 템플릿
-const PAYPAL_TEMPLATES = {
-  ko: (krw, usd) => `💳 PayPal 카드결제
-
-Deposit : ${krw} won ( ${usd} USD )
-
-해외 결제는 고정 환율을 적용합니다.
-안내된 USD 금액에는 PayPal 수수료가 포함되어 있습니다.
-
-https://www.paypal.com/ncp/payment/LHVBDE7UWNLD4
-
-• 총금액 - 예약금 = 현장 결제 (잔액)
-• 예약금 결제 완료 후 예약이 확정됩니다.
-• 30분 이내 결제가 완료되지 않으면 예약이 자동 취소됩니다.
-• 예약일 2일 전 오후 6시(KST)까지 취소 및 환불이 가능합니다.
-• 예약일 하루 전 취소 또는 변경 시 환불이 불가합니다.
-• 결제 완료 후 결제 확인 스크린샷을 보내주세요.`,
-
-  en: (krw, usd) => `💳 PayPal Card Payment
-
-Deposit : ${krw} won ( ${usd} USD )
-
-We use a fixed exchange rate for overseas payments.
-The quoted USD amount includes PayPal fees.
-
-https://www.paypal.com/ncp/payment/LHVBDE7UWNLD4
-
-• Total Amount – Deposit = On-site Payment (Remaining Balance)
-• Your reservation will be confirmed after the deposit payment is completed.
-• If the payment is not completed within 30 minutes, the reservation will be automatically canceled.
-• Cancellations and refunds are available until 6:00 PM (KST), two days before the reservation date.
-• Cancellations or changes made one day before the reservation date are non-refundable.
-• Please send a screenshot of the payment confirmation after completing the payment.`,
-
-  zh: (krw, usd) => `💳 PayPal 卡支付
-
-预约金 : ${krw} won ( ${usd} USD )
-
-海外支付采用固定汇率。
-提示的美元金额已包含PayPal手续费。
-
-https://www.paypal.com/ncp/payment/LHVBDE7UWNLD4
-
-• 总金额 - 预约金 = 现场支付（余额）
-• 预约金支付完成后预约确认。
-• 30分钟内未完成支付将自动取消预约。
-• 预约日2天前下午6点（韩国时间）前可取消和退款。
-• 预约前一天取消或变更不予退款。
-• 支付完成后请发送支付确认截图。`,
-
-  ja: (krw, usd) => `💳 PayPal カード決済
-
-予約金 : ${krw} won ( ${usd} USD )
-
-海外決済は固定為替レートを適用しております。
-ご案内しているUSD金額にはPayPal手数料が含まれております。
-
-https://www.paypal.com/ncp/payment/LHVBDE7UWNLD4
-
-• 総お支払い金額 − 予約金 ＝ 当日現地決済（残額）
-• 予約金のお支払い完了後、予約が確定となります。
-• 30分以内にお支払いが確認できない場合、予約は自動的にキャンセルとなります。
-• ご予約日の2日前18:00（韓国時間・KST）までキャンセルおよび返金が可能です。
-• ご予約日前日のキャンセルまたは変更は、予約金の返金はできません。
-• お支払い後、決済完了画面（スクリーンショット）をお送りください。`,
-
-  th: (krw, usd) => `💳 การชำระเงินด้วย PayPal
-
-เงินมัดจำ : ${krw} won ( ${usd} USD )
-
-เราใช้อัตราแลกเปลี่ยนคงที่สำหรับการชำระเงินจากต่างประเทศ
-จำนวน USD ที่แจ้งรวมค่าธรรมเนียม PayPal แล้ว
-
-https://www.paypal.com/ncp/payment/LHVBDE7UWNLD4
-
-• ยอดรวม - เงินมัดจำ = ชำระที่ร้าน (ยอดคงเหลือ)
-• การจองจะได้รับการยืนยันหลังจากชำระเงินมัดจำเสร็จสิ้น
-• หากไม่ชำระเงินภายใน 30 นาที การจองจะถูกยกเลิกอัตโนมัติ
-• สามารถยกเลิกและขอคืนเงินได้จนถึง 18:00 น. (เวลาเกาหลี) 2 วันก่อนวันนัด
-• การยกเลิกหรือเปลี่ยนแปลงวันก่อนวันนัดไม่สามารถคืนเงินได้
-• กรุณาส่งภาพหน้าจอยืนยันการชำระเงินหลังชำระเงินเสร็จสิ้น`
-};
-
-// 하위 호환용 (한국어만)
-const QUICK_REPLIES = {
-  address: `📍 말랑뷰티 오시는 길
-
-21-3, Seolleung-ro 161-gil, Gangnam-gu, Seoul, Republic of Korea
-(kor. 서울시 강남구 신사동 662-10 )
-
-🚇 지하철: 선릉역 5번 출구 도보 5분
-🚌 버스: 강남구청 정류장 하차
-
-📱 네이버맵에서 "말랑뷰티" 검색`,
-
-  complete: `✅ 예약 완료 안내
-
-📌 예약 시 주의사항
-
-• 예약 시간 10분 이상 지각 시 자동 취소되며 예약금은 환불되지 않습니다.
-• 예약 변경·취소는 예약일 2일 전 오후 6시(KST)까지 가능하며, 이후에는 환불이 불가합니다.
-
-💇💄 방문 전 준비사항
-
-• 헤어 스타일링 예약 시: 당일 오전 집 또는 숙소에서 샴푸 후 린스나 헤어제품 사용하지 말고 방문해 주세요.
-  (커트 예약은 샴푸 포함 / 오전 11시 이전 샴푸 불가)
-• 메이크업 예약 시: 기초 케어만 하고 민낯으로 방문해 주세요.
-• 콘택트렌즈는 메이크업 시작 전에 반드시 착용을 완료해 주세요.
-
-⏰ 중요 안내
-
-• 현장 상황에 따라 불가피한 대기 시간이 발생할 수 있습니다.
-• 늦게 오시면 다른 예약 손님들에게 막대한 피해를 줄 수 있으니 제발 예약 시간 안에 도착해 주시길 부탁드립니다.
-
-예약 해주셔서 감사합니다 💕`,
-
-  paypal: `💳 PayPal 카드결제
-
-We use a fixed exchange rate for overseas payments.
-The quoted USD amount includes PayPal fees.
-
-https://www.paypal.com/ncp/payment/LHVBDE7UWNLD4
-
-• Total Amount – Deposit = On-site Payment (Remaining Balance)
-
-• Your reservation will be confirmed after the deposit payment is completed.
-• If the payment is not completed within 30 minutes, the reservation will be automatically canceled.
-• Cancellations and refunds are available until 6:00 PM (KST), two days before the reservation date.
-• Cancellations or changes made one day before the reservation date are non-refundable.
-• Please send a screenshot of the payment confirmation after completing the payment.`,
-
-  japan: `🇯🇵 日本 銀行振込
-
-paypay銀行(0033)
-はやぶさ支店(003)
-普通7862427
-キムジョンヒ
-
-• 海外決済は固定為替レートを適用しております。
-• ご案内している円（JPY）金額には海外送金手数料が含まれております。
-
-• 総お支払い金額 − 予約金 ＝ 当日現地決済（残額）
-
-• 予約金のお支払い完了後、予約が確定となります。
-• 30分以内にお支払いが確認できない場合、予約は自動的にキャンセルとなります。
-• ご予約日の2日前18:00（韓国時間・KST）までキャンセルおよび返金が可能です。
-• ご予約日前日のキャンセルまたは変更は、予約金の返金はできません。
-• お支払い後、決済完了画面（スクリーンショット）をお送りください。`
-};
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 전역 변수
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-let lang = 'en';
-let langName = 'English';
-let langFlag = '🌐';
-let messages = [];
-let isSending = false;
-let savedReservation = ''; // 저장된 예약 정보
-let staffMessageHistory = []; // 스태프가 보낸 메시지 히스토리 (최근 5개)
-let isStaffMode = true; // 스태프 모드 (취소 기능 활성화)
-
-// Firebase 설정
+// ========================================
+// Firebase 초기화
+// ========================================
 const firebaseConfig = {
   apiKey: "AIzaSyCeouM3_9JCWaKTGEeQFrD3ZikAgpheJQ8",
   authDomain: "mallang-chat.firebaseapp.com",
@@ -900,1340 +549,1086 @@ const firebaseConfig = {
   messagingSenderId: "224793274849",
   appId: "1:224793274849:web:d97f17bf3c410f0ed88aa0"
 };
-
-// Firebase 초기화
 firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
-const messagesRef = database.ref('messages');
+const auth = firebase.auth();
+const db = firebase.database();
+const storage = firebase.storage();
 
-// 현재 사용자 ID (고유)
-const userId = 'user-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+// ========================================
+// 전역 변수
+// ========================================
+let currentLang = 'ko';
+let currentUser = null;
+let currentUserData = null; // { name, role, profileId, lang, ... }
+let currentChatId = null;
+let currentChatType = null; // 'admin' or 'direct'
+let currentChatPartner = null;
+let selectedRoomId = null; // staff panel
+let isSending = false;
+let pendingImage = null; // 업로드할 이미지 파일
+let signupRole = 'customer';
+let isSigningUp = false; // 회원가입 진행중 플래그
 
-// OpenAI API 설정 (보안상 제거됨 - 나중에 서버에서 처리)
-const OPENAI_API_KEY = '';
-const translationCache = new Map(); // 번역 캐시
-
-// 언어 코드 매핑
-const LANG_NAMES = {
-  ko: '한국어',
-  en: 'English',
-  zh: '中文',
-  ja: '日本語',
-  th: 'ภาษาไทย'
+// ========================================
+// 번역 텍스트
+// ========================================
+const T = {
+  ko: { placeholder: '메시지를 입력하세요...', subtitle: '상담원이 곧 응답합니다' },
+  en: { placeholder: 'Type your message...', subtitle: 'Our team will reply shortly' },
+  zh: { placeholder: '请输入消息...', subtitle: '我们的团队会尽快回复' },
+  ja: { placeholder: 'メッセージを入力...', subtitle: 'スタッフがすぐに対応します' },
+  th: { placeholder: 'พิมพ์ข้อความ...', subtitle: 'ทีมงานจะตอบกลับในเร็วๆ นี้' },
+  vi: { placeholder: 'Nhập tin nhắn...', subtitle: 'Nhân viên sẽ phản hồi sớm' }
 };
 
-// 예약 양식 다국어
-const RESERVE_FORMS = {
-  ko: {
-    intro: `• 먼저 고객님의 정보가 필요합니다.
-• 예약금 결제 후 예약이 확정됩니다.
-• 예약일 기준 2일 전 오후 6시(한국 시간)까지 취소 및 환불이 가능합니다.
-• 1시간 이내에 예약금 결제가 가능하시면 아래 내용을 작성해 주세요.
-• 총금액에서 예약금을 제외한 나머지 금액을 현장에서 결제합니다.
-• 예약금 결제 후 스크린샷을 꼭 이곳에 남겨주세요. 그렇지 못할 경우 예약이 확정되지 않습니다.`,
-    form: `날짜 :  월 /  일 ( 요일 )
-시간 :
-이름(영문) :
-인원 :
-원하시는 서비스 :
-예약금 결제 방법 : 아래 방법 중 선택해주세요
-  - 중국 : 위챗페이, 알리페이
-  - 일본 : 계좌이체 (페이페이 은행)
-  - 공용 : 카드결제`,
-    copyBtn: '📋 복사하기',
-    copied: '✅ 예약 정보가 복사되었습니다!\n작성하신 내용을 채팅창에 붙여넣기 해주세요.'
-  },
-  en: {
-    intro: `• First, we need your information.
-• Reservation will be confirmed after deposit payment.
-• Cancellations and refunds are available until 6:00 PM (KST), two days before the reservation date.
-• Please fill out the form below if you can pay the deposit within 1 hour.
-• Remaining balance (Total - Deposit) will be paid on-site.
-• Please send a screenshot of the payment confirmation here. Without it, your reservation will not be confirmed.`,
-    form: `Date : Month / Day ( Day of week )
-Time :
-Name (English) :
-Number of people :
-Desired service :
-Deposit payment method : Please choose from below
-  - China : WeChat Pay, Alipay
-  - Japan : Bank transfer (PayPay Bank)
-  - General : Card payment`,
-    copyBtn: '📋 Copy',
-    copied: '✅ Reservation information copied!\nPlease paste it in the chat.'
-  },
-  zh: {
-    intro: `• 首先需要您的信息。
-• 支付预约金后预约确认。
-• 预约日2天前下午6点（韩国时间）前可取消和退款。
-• 如果能在1小时内支付预约金，请填写以下内容。
-• 剩余金额（总额-预约金）在现场支付。
-• 支付预约金后请务必在此发送截图。否则无法确认预约。`,
-    form: `日期 : 月 / 日 ( 星期 )
-时间 :
-姓名(英文) :
-人数 :
-所需服务 :
-预约金支付方式 : 请从以下方式中选择
-  - 中国 : 微信支付、支付宝
-  - 日本 : 银行转账 (PayPay银行)
-  - 通用 : 卡支付`,
-    copyBtn: '📋 复制',
-    copied: '✅ 预约信息已复制！\n请粘贴到聊天窗口。'
-  },
-  ja: {
-    intro: `• まずお客様の情報が必要です。
-• 予約金のお支払い完了後、予約が確定となります。
-• ご予約日の2日前18:00（韓国時間）までキャンセルおよび返金が可能です。
-• 1時間以内に予約金のお支払いが可能な場合は、以下の内容をご記入ください。
-• 残額（総額-予約金）は当日現地でお支払いください。
-• 予約金お支払い後、必ずこちらにスクリーンショットをお送りください。確認できない場合、予約は確定されません。`,
-    form: `日付 : 月 / 日 ( 曜日 )
-時間 :
-お名前(英語) :
-人数 :
-ご希望のサービス :
-予約金お支払い方法 : 以下からお選びください
-  - 中国 : WeChat Pay、Alipay
-  - 日本 : 銀行振込 (PayPay銀行)
-  - 共通 : カード決済`,
-    copyBtn: '📋 コピー',
-    copied: '✅ 予約情報がコピーされました！\nチャット欄に貼り付けてください。'
-  },
-  th: {
-    intro: `• ต้องการข้อมูลของคุณก่อน
-• การจองจะได้รับการยืนยันหลังจากชำระเงินมัดจำ
-• สามารถยกเลิกและขอคืนเงินได้จนถึง 18:00 น. (เวลาเกาหลี) 2 วันก่อนวันนัด
-• หากสามารถชำระเงินมัดจำภายใน 1 ชั่วโมง กรุณากรอกข้อมูลด้านล่าง
-• ยอดคงเหลือ (ยอดรวม - เงินมัดจำ) จะชำระที่ร้าน
-• กรุณาส่งภาพหน้าจอยืนยันการชำระเงินที่นี่ มิฉะนั้นการจองจะไม่ได้รับการยืนยัน`,
-    form: `วันที่ : เดือน / วัน ( วัน )
-เวลา :
-ชื่อ (อังกฤษ) :
-จำนวนคน :
-บริการที่ต้องการ :
-วิธีชำระเงินมัดจำ : กรุณาเลือกจากด้านล่าง
-  - จีน : WeChat Pay, Alipay
-  - ญี่ปุ่น : โอนเงิน (PayPay Bank)
-  - ทั่วไป : ชำระด้วยบัตร`,
-    copyBtn: '📋 คัดลอก',
-    copied: '✅ คัดลอกข้อมูลการจองแล้ว！\nกรุณาวางในช่องแชท'
-  }
-};
+// ========================================
+// 예약 확인 메시지 템플릿
+// ========================================
+const WECHAT_QR = 'data:image/jpeg;base64,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';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 다국어 UI
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const UI = {
-  ko: {
-    title: 'MALLANG에 오신 것을 환영합니다',
-    sub: '강남의 프리미엄 뷰티 & 포토 스튜디오',
-    ph: '메시지를 입력하세요...',
-    status: '직원이 곧 답변드립니다',
-    hint: 'AI 번역 지원 · MALLANG AI',
-    cats: ['💄 메이크업', '💇 헤어', '💆 스파', '📸 포토'],
-    reserve: '📅 예약하기',
-    close: '✕'
-  },
-  zh: {
-    title: '欢迎来到MALLANG',
-    sub: '江南优质美容摄影工作室',
-    ph: '请输入消息...',
-    status: '客服人员将很快回复',
-    hint: 'AI翻译支持 · MALLANG AI',
-    cats: ['💄 化妆', '💇 美发', '💆 水疗', '📸 拍照'],
-    reserve: '📅 预约',
-    close: '✕'
-  },
-  ja: {
-    title: 'MALLANGへようこそ',
-    sub: '江南のプレミアム美容・写真スタジオ',
-    ph: 'メッセージを入力...',
-    status: 'スタッフがまもなく返信します',
-    hint: 'AI翻訳対応 · MALLANG AI',
-    cats: ['💄 メイク', '💇 ヘア', '💆 スパ', '📸 フォト'],
-    reserve: '📅 予約',
-    close: '✕'
-  },
-  th: {
-    title: 'ยินดีต้อนรับสู่ MALLANG',
-    sub: 'สตูดิโอความงามและภาพถ่ายระดับพรีเมี่ยมในคังนัม',
-    ph: 'พิมพ์ข้อความ...',
-    status: 'ทีมงานจะตอบกลับเร็วๆนี้',
-    hint: 'รองรับการแปลด้วย AI · MALLANG AI',
-    cats: ['💄 แต่งหน้า', '💇 ทำผม', '💆 สปา', '📸 ถ่ายรูป'],
-    reserve: '📅 จอง',
-    close: '✕'
-  },
-  en: {
-    title: 'Welcome to MALLANG',
-    sub: 'Premium beauty & photo studio in Gangnam, Seoul.',
-    ph: 'Type your message...',
-    status: 'Our team will reply shortly',
-    hint: 'AI Translation Powered · MALLANG AI',
-    cats: ['💄 Makeup', '💇 Hair', '💆 Spa', '📸 Photo'],
-    reserve: '📅 Reservation',
-    close: '✕'
-  },
-  auto: {
-    title: 'Welcome to MALLANG',
-    sub: 'Premium beauty & photo studio in Gangnam, Seoul.',
-    ph: 'Type your message...',
-    status: 'Our team will reply shortly',
-    hint: 'AI Translation Powered · MALLANG AI',
-    cats: ['💄 Makeup', '💇 Hair', '💆 Spa', '📸 Photo'],
-    reserve: '💰 Deposit',
-    close: '✕'
-  }
-};
+const quickConfirmed = `[CENTER]━━━━━━━━━━━━━━━━[/CENTER]
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 메뉴 텍스트 (다국어)
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const TRANSLATED_MENUS = {
-  makeup: {
-    ko: `[ lady ]
- A (daily)
- : 100,000
- B (idol, photo shoot make up)
- : 110,000
+[CENTER]✅ 예약 완료 되었습니다 ✅[/CENTER]
 
-[ man ]
- A (daily)
- : 60,000
- B (idol, photo shoot make up)
- : 90,000
+[CENTER]꼭 !! 읽어주세요 !![/CENTER]
 
-[ make up lesson ]
-  350,000 (90 min)
+**1. 예약 시간 10분 이상 지각 시 자동 취소되며 예약금은 환불되지 않습니다.**
+2. 예약 변경·취소는 예약일 2일 전 오후 6시(KST)까지 가능하며, 이후에는 환불이 불가합니다.
+3. 헤어 스타일링을 예약하신 분은 당일 오전 숙소에서 샴푸 후 린스나 헤어제품 사용하지 말고 방문해주세요(커트 예약은 샴푸 포함 / 오전 11시 이전 샴푸 불가)
+4. 메이크업 예약 고객님은 기초 케어만 하고 민낯으로 방문해 주세요.
+5. 콘택트렌즈는 메이크업 시작 전에 반드시 착용을 완료해 주세요.
+6. 현장 상황에 따라 불가피한 대기 시간이 발생할 수 있습니다.
 
- - hair styling (setting) -
+**늦게 오시면 다른 예약 손님들에게 막대한 피해를 줄 수 있으니 제발 예약 시간 안에 도착해 주시길 부탁드립니다**
 
-[ Lady ]
-A (daily) 45,000
-B ( semi up style) 60,000
-C ( up style) 80,000
-( +hair wash +20,000)
+예약 해주셔서 감사합니다 🙏`;
 
-[ Man ]
-40,000
-(+ hair wash +20,000)
-
-* Please decide the style after consulting with the designer.
-
- -  before am 10:00 -
-+Early charge
-
-am 9:00
-  Hair + 10,000 / Make up + 10,000
-am 8:00
-  Hair + 20,000 / Make up + 20,000
-am 7:00
-  Hair + 30,000 / Make up + 30,000`,
-
-    en: `[ lady ]
- A (daily)
- : 100,000
- B (idol, photo shoot makeup)
- : 110,000
-
-[ man ]
- A (daily)
- : 60,000
- B (idol, photo shoot makeup)
- : 90,000
-
-[ makeup lesson ]
-  350,000 (90 min)
-
- - hair styling (setting) -
-
-[ Lady ]
-A (daily) 45,000
-B (semi up style) 60,000
-C (up style) 80,000
-(+hair wash +20,000)
-
-[ Man ]
-40,000
-(+hair wash +20,000)
-
-* Please decide the style after consulting with the designer.
-
- - before 10:00 AM -
-+Early charge
-
-9:00 AM
-  Hair +10,000 / Makeup +10,000
-8:00 AM
-  Hair +20,000 / Makeup +20,000
-7:00 AM
-  Hair +30,000 / Makeup +30,000`,
-
-    zh: `[ 女士 ]
- A (日常妆)
- : 100,000
- B (艺人妆、拍摄妆)
- : 110,000
-
-[ 男士 ]
- A (日常妆)
- : 60,000
- B (艺人妆、拍摄妆)
- : 90,000
-
-[ 化妆课程 ]
-  350,000 (90分钟)
-
- - 发型造型 -
-
-[ 女士 ]
-A (日常) 45,000
-B (半盘发) 60,000
-C (盘发) 80,000
-(+洗头 +20,000)
-
-[ 男士 ]
-40,000
-(+洗头 +20,000)
-
-* 请与设计师商议后决定造型。
-
- - 上午10点之前 -
-+早时段附加费
-
-上午9:00
-  发型 +10,000 / 化妆 +10,000
-上午8:00
-  发型 +20,000 / 化妆 +20,000
-上午7:00
-  发型 +30,000 / 化妆 +30,000`,
-
-    ja: `[ レディース ]
- A (デイリー)
- : 100,000
- B (アイドル、撮影メイク)
- : 110,000
-
-[ メンズ ]
- A (デイリー)
- : 60,000
- B (アイドル、撮影メイク)
- : 90,000
-
-[ メイクレッスン ]
-  350,000 (90分)
-
- - ヘアスタイリング -
-
-[ レディース ]
-A (デイリー) 45,000
-B (セミアップスタイル) 60,000
-C (アップスタイル) 80,000
-(+シャンプー +20,000)
-
-[ メンズ ]
-40,000
-(+シャンプー +20,000)
-
-* デザイナーとご相談の上、スタイルをお決めください。
-
- - 午前10時前 -
-+早朝料金
-
-午前9:00
-  ヘア +10,000 / メイク +10,000
-午前8:00
-  ヘア +20,000 / メイク +20,000
-午前7:00
-  ヘア +30,000 / メイク +30,000`,
-
-    th: `[ ผู้หญิง ]
- A (แต่งหน้าธรรมดา)
- : 100,000
- B (แต่งหน้าไอดอล, ถ่ายภาพ)
- : 110,000
-
-[ ผู้ชาย ]
- A (แต่งหน้าธรรมดา)
- : 60,000
- B (แต่งหน้าไอดอล, ถ่ายภาพ)
- : 90,000
-
-[ คอร์สเรียนแต่งหน้า ]
-  350,000 (90 นาที)
-
- - ทำผม -
-
-[ ผู้หญิง ]
-A (ธรรมดา) 45,000
-B (ทรงกึ่งมัด) 60,000
-C (ทรงมัด) 80,000
-(+สระผม +20,000)
-
-[ ผู้ชาย ]
-40,000
-(+สระผม +20,000)
-
-* กรุณาปรึกษากับนักออกแบบก่อนเลือกทรง
-
- - ก่อน 10:00 น. -
-+ค่าบริการช่วงเช้า
-
-09:00 น.
-  ทำผม +10,000 / แต่งหน้า +10,000
-08:00 น.
-  ทำผม +20,000 / แต่งหน้า +20,000
-07:00 น.
-  ทำผม +30,000 / แต่งหน้า +30,000`
-  },
-
-  hair: {
-    ko: ` * cut *
- lady : 55,000
- man : 40,000
-
- * perm *
- lady : 220,000 ~
-
- * color *
- lady : 140,000 ~
-
- * extension *
- normal : 400,000 ~
- premium : 600,000 ~`,
-
-    en: ` * cut *
- lady : 55,000
- man : 40,000
-
- * perm *
- lady : 220,000 ~
-
- * color *
- lady : 140,000 ~
-
- * extension *
- normal : 400,000 ~
- premium : 600,000 ~`,
-
-    zh: ` * 剪发 *
- 女士 : 55,000
- 男士 : 40,000
-
- * 烫发 *
- 女士 : 220,000 ~
-
- * 染发 *
- 女士 : 140,000 ~
-
- * 接发 *
- 普通 : 400,000 ~
- 高级 : 600,000 ~`,
-
-    ja: ` * カット *
- 女性 : 55,000
- 男性 : 40,000
-
- * パーマ *
- 女性 : 220,000 ~
-
- * カラー *
- 女性 : 140,000 ~
-
- * エクステ *
- ノーマル : 400,000 ~
- プレミアム : 600,000 ~`,
-
-    th: ` * ตัดผม *
- ผู้หญิง : 55,000
- ผู้ชาย : 40,000
-
- * ดัดผม *
- ผู้หญิง : 220,000 ~
-
- * ย้อมผม *
- ผู้หญิง : 140,000 ~
-
- * ต่อผม *
- ธรรมดา : 400,000 ~
- พรีเมียม : 600,000 ~`
-  },
-
-  spa: {
-    ko: `* Head spa *
- 30min : 70,000
- 60min : 130,000
-
- * Head spa + hair treatment *
- 90min : 230,000`,
-
-    en: `* Head Spa *
- 30min : 70,000
- 60min : 130,000
-
- * Head Spa + Hair Treatment *
- 90min : 230,000`,
-
-    zh: `* 头部SPA *
- 30分钟 : 70,000
- 60分钟 : 130,000
-
- * 头部SPA + 护发 *
- 90分钟 : 230,000`,
-
-    ja: `* ヘッドスパ *
- 30分 : 70,000
- 60分 : 130,000
-
- * ヘッドスパ + ヘアトリートメント *
- 90分 : 230,000`,
-
-    th: `* สปาหนังศีรษะ *
- 30 นาที : 70,000
- 60 นาที : 130,000
-
- * สปาหนังศีรษะ + ทรีทเมนท์ *
- 90 นาที : 230,000`
-  },
-
-  photo: {
-    ko: `증명사진 (8장) : 30,000원
-프로필 촬영 (30분) : 150,000원
-본식 스냅 촬영 : 500,000원~
-야외 촬영 : 별도 문의`,
-
-    en: `ID Photo (8 sheets) : 30,000
-Profile Shoot (30min) : 150,000
-Wedding Snap : 500,000~
-Outdoor Shoot : Contact us`,
-
-    zh: `证件照 (8张) : 30,000
-形象照 (30分钟) : 150,000
-婚礼抓拍 : 500,000~
-户外拍摄 : 另询`,
-
-    ja: `証明写真 (8枚) : 30,000
-プロフィール撮影 (30分) : 150,000
-本式スナップ撮影 : 500,000~
-野外撮影 : 別途お問い合わせ`,
-
-    th: `รูปถ่ายบัตร (8 ใบ) : 30,000
-ถ่ายโปรไฟล์ (30 นาที) : 150,000
-ถ่ายงานแต่ง : 500,000~
-ถ่ายกลางแจ้ง : สอบถามเพิ่มเติม`
-  }
-};
-
-// 하위 호환을 위한 MENUS (한국어만)
-const MENUS = {
-  makeup: `[ lady ]
- A (daily)
- : 100,000
- B (idol, photo shoot make up)
- : 110,000
-
-[ man ]
- A (daily)
- : 60,000
- B (idol, photo shoot make up)
- : 90,000
-
-[ make up lesson ]
-   350,000 (90 min)
-
- - hair styling (setting) -
-
-[ Lady ]
-A (daily) 45,000
-B ( semi up style) 60,000
-C ( up style) 80,000
-( +hair wash +20,000)
-
-[ Man ]
-40,000
-(+ hair wash +20,000)
-
-* Please decide the style after consulting with the designer.
-*デザイナーとご相談の上、スタイルをお決めください。
-
- -  before am 10:00 -
-+Early charge，＋ 早朝料金
-
-am 9:00
-  Hair + 10,000 / Make up + 10,000
-am 8:00
-  Hair + 20,000 / Make up + 20,000
-am 7:00
-  Hair + 30,000 / Make up + 30,000`,
-
-  hair: ` * cut *
- lady : 55,000
- man : 40,000
-
- * perm *
- lady : 220,000 ~
-
- * color *
- lady : 140,000 ~
-
- * extension *
- normal : 400,000 ~
- premium : 600,000 ~`,
-
-  spa: `* Head spa *
- 30min : 70,000
- 60min : 130,000
-
- * Head spa + hair treatment *
- 90min : 230,000`,
-
-  photo: `증명사진 (8장) : 30,000원
-프로필 촬영 (30분) : 150,000원
-본식 스냅 촬영 : 500,000원~
-야외 촬영 : 별도 문의`,
-
-  reserve: `• 먼저 고객님의 정보가 필요합니다.
-• 예약금 결제 후 예약이 확정됩니다.
-• 예약일 기준 2일 전 오후 6시(한국 시간)까지 취소 및 환불이 가능합니다.
-• 1시간 이내에 예약금 결제가 가능하시면 아래 내용을 작성해 주세요.
-• 총금액에서 예약금을 제외한 나머지 금액을 현장에서 결제합니다.
-• 예약금 결제 후 스크린샷을 꼭 이곳에 남겨주세요. 그렇지 못할 경우 예약이 확정되지 않습니다.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-날짜 :  월 /  일 ( 요일 )
-시간 :
-이름(영문) :
-인원 :
-원하시는 서비스 :
-예약금 결제 방법 :
-아래 방법 중 선택해주세요
- - 중국 : 위챗페이, 알리페이
- - 일본 : 계좌이체 (페이페이 은행)
- - 공용 : 카드결제`
-};
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 키워드 감지
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const KEYWORDS = {
-  reserve: {
-    ko: ['예약', '부킹', 'booking'],
-    zh: ['预约', '预订', '订位', 'booking'],
-    ja: ['予約', 'ブッキング', 'booking'],
-    th: ['จอง', 'นัดหมาย', 'booking'],
-    en: ['book', 'reserve', 'reservation', 'appointment', 'booking']
-  },
-  price: {
-    ko: ['가격', '요금', '얼마', '비용', '금액'],
-    zh: ['价格', '多少钱', '费用', '收费'],
-    ja: ['料金', '価格', 'いくら', '値段'],
-    th: ['ราคา', 'เท่าไหร่', 'ค่าบริการ'],
-    en: ['price', 'cost', 'how much', 'fee']
-  },
-  makeup: {
-    ko: ['메이크업', '화장'],
-    zh: ['化妆', '彩妆'],
-    ja: ['メイク', '化粧'],
-    th: ['แต่งหน้า'],
-    en: ['makeup']
-  },
-  hair: {
-    ko: ['헤어', '컷', '펌', '염색'],
-    zh: ['美发', '剪发', '烫发', '染发'],
-    ja: ['ヘア', 'カット', 'パーマ', 'カラー'],
-    th: ['ทำผม', 'ตัดผม'],
-    en: ['hair', 'cut', 'perm', 'color']
-  }
-};
-
-function detectKeyword(text, category) {
-  const lower = text.toLowerCase();
-  const kw = KEYWORDS[category];
-  for (let l in kw) {
-    if (kw[l].some(k => lower.includes(k))) return true;
-  }
-  return false;
+// ========================================
+// 화면 전환
+// ========================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
 }
 
-function detectService(text) {
-  if (detectKeyword(text, 'makeup')) return 'makeup';
-  if (detectKeyword(text, 'hair')) return 'hair';
-  return null;
+// ========================================
+// 역할 선택 (회원가입)
+// ========================================
+function setRole(role) {
+  signupRole = role;
+  document.querySelectorAll('#roleToggle button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  const df = document.getElementById('designerFields');
+  if (role === 'designer') {
+    df.classList.add('show');
+    document.getElementById('friendSearchHint').textContent = '고객 ID를 입력하세요';
+  } else {
+    df.classList.remove('show');
+    document.getElementById('friendSearchHint').textContent = '디자이너 ID를 입력하세요';
+  }
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 언어 선택
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function selectLanguage(l, ln, lf) {
-  lang = l;
-  langName = ln;
-  langFlag = lf;
+// ========================================
+// 언어 선택 (고객용)
+// ========================================
+function selectLang(lang) {
+  currentLang = lang;
+  if (currentUser && currentUserData) {
+    // 이미 로그인된 상태
+    if (currentUserData.role !== 'designer') {
+      initAdminRoom();
+    }
+    loadChatList();
+    showScreen('chatListScreen');
+  } else {
+    showScreen('loginScreen');
+  }
+}
+
+// ========================================
+// Auth 상태 감지
+// ========================================
+const isStaffMode = new URLSearchParams(window.location.search).has('staff');
+
+auth.onAuthStateChanged(async (user) => {
+  if (isStaffMode) {
+    goStaff();
+    return;
+  }
+  if (isSigningUp) return; // 회원가입 중에는 무시
+  if (user) {
+    currentUser = user;
+    const snap = await db.ref('users/' + user.uid).once('value');
+    currentUserData = snap.val();
+    
+    if (currentUserData) {
+      currentLang = currentUserData.lang || 'en';
+      
+      // 고객이면 관리자 채팅방 확인/생성
+      if (currentUserData.role !== 'designer') {
+        if (!currentUserData.adminRoomId) {
+          await initAdminRoom();
+        }
+      }
+      
+      // 채팅 목록으로
+      loadChatList();
+      showScreen('chatListScreen');
+      
+      // 고객이면 Price 버튼 표시
+      if (currentUserData.role !== 'designer') {
+        document.getElementById('priceMenuBtn').style.display = 'inline-block';
+      }
+    } else {
+      showScreen('langScreen');
+    }
+  } else {
+    currentUser = null;
+    currentUserData = null;
+    showScreen('langScreen');
+  }
+});
+
+// ========================================
+// 회원가입
+// ========================================
+async function doSignup() {
+  const name = document.getElementById('signupName').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const pw = document.getElementById('signupPw').value;
+  const profileId = document.getElementById('signupProfileId').value.trim();
+  const errEl = document.getElementById('signupError');
   
-  const ls = document.getElementById('lang-screen');
-  ls.classList.add('hide');
-  setTimeout(() => ls.style.display = 'none', 500);
+  errEl.style.display = 'none';
   
-  document.getElementById('app').style.display = 'block';
+  if (!name || !email || !pw) {
+    errEl.textContent = '모든 항목을 입력해주세요 / Please fill in all fields';
+    errEl.style.display = 'block';
+    return;
+  }
   
-  const ui = UI[l] || UI.en;
-  document.getElementById('lang-badge').textContent = lf + ' ' + ln;
-  document.getElementById('msg-input').placeholder = ui.ph;
+  if (signupRole === 'designer' && !profileId) {
+    errEl.textContent = '프로필 ID를 입력해주세요';
+    errEl.style.display = 'block';
+    return;
+  }
   
-  // 사이드바 버튼 생성
-  const sidebar = document.getElementById('sidebar');
-  sidebar.innerHTML = '';
-  const menus = [...ui.cats, ui.reserve];
-  const keys = ['makeup', 'hair', 'spa', 'photo', 'reserve'];
-  menus.forEach((label, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'sidebar-btn' + (i === 4 ? ' reserve' : '');
-    btn.textContent = label;
-    btn.dataset.menu = keys[i];
-    sidebar.appendChild(btn);
+  // 디자이너 프로필 ID 중복 확인
+  if (signupRole === 'designer') {
+    const idCheck = await db.ref('profileIds/' + profileId.toLowerCase()).once('value');
+    if (idCheck.exists()) {
+      errEl.textContent = '이미 사용중인 ID입니다 / ID already taken';
+      errEl.style.display = 'block';
+      return;
+    }
+  }
+  
+  try {
+    isSigningUp = true;
+    const cred = await auth.createUserWithEmailAndPassword(email, pw);
+    await cred.user.updateProfile({ displayName: name });
+    
+    const userData = {
+      name: name,
+      email: email,
+      role: signupRole,
+      lang: signupRole === 'designer' ? 'ko' : currentLang,
+      createdAt: Date.now()
+    };
+    
+    if (signupRole === 'designer') {
+      userData.profileId = profileId;
+      // 프로필 ID 인덱스 저장
+      await db.ref('profileIds/' + profileId.toLowerCase()).set(cred.user.uid);
+    } else {
+      // 고객은 uid 앞 8자리를 profileId로
+      userData.profileId = cred.user.uid.substring(0, 8);
+    }
+    
+    await db.ref('users/' + cred.user.uid).set(userData);
+    
+    // 수동으로 상태 설정 후 화면 이동
+    currentUser = cred.user;
+    currentUserData = userData;
+    
+    // 고객이면 관리자 채팅방 생성
+    if (signupRole !== 'designer') {
+      await initAdminRoom();
+    }
+    
+    isSigningUp = false;
+    loadChatList();
+    showScreen('chatListScreen');
+    
+    if (signupRole !== 'designer') {
+      document.getElementById('priceMenuBtn').style.display = 'inline-block';
+    }
+    
+  } catch (error) {
+    isSigningUp = false;
+    errEl.textContent = getAuthErrorMsg(error.code);
+    errEl.style.display = 'block';
+  }
+}
+
+// ========================================
+// 로그인
+// ========================================
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pw = document.getElementById('loginPw').value;
+  const errEl = document.getElementById('loginError');
+  
+  errEl.style.display = 'none';
+  if (!email || !pw) {
+    errEl.textContent = '이메일과 비밀번호를 입력해주세요';
+    errEl.style.display = 'block';
+    return;
+  }
+  
+  try {
+    await auth.signInWithEmailAndPassword(email, pw);
+  } catch (error) {
+    errEl.textContent = getAuthErrorMsg(error.code);
+    errEl.style.display = 'block';
+  }
+}
+
+// ========================================
+// 로그아웃
+// ========================================
+async function doLogout() {
+  if (!confirm('로그아웃 하시겠습니까?')) return;
+  currentUser = null;
+  currentUserData = null;
+  currentChatId = null;
+  await auth.signOut();
+  showScreen('langScreen');
+}
+
+// ========================================
+// 관리자 채팅방 생성 (고객용, 기존 호환)
+// ========================================
+async function initAdminRoom() {
+  if (!currentUser) return;
+  const uid = currentUser.uid;
+  const roomId = 'room_' + uid;
+  
+  const snap = await db.ref('rooms/' + roomId).once('value');
+  if (!snap.exists()) {
+    await db.ref('rooms/' + roomId).set({
+      userName: currentUser.displayName || 'Guest',
+      userEmail: currentUser.email || '',
+      userLang: currentLang,
+      userId: uid,
+      lastMessage: '',
+      lastMessageTime: Date.now(),
+      unreadCount: 0
+    });
+  }
+  
+  await db.ref('users/' + uid).update({ adminRoomId: roomId, lang: currentLang });
+  if (currentUserData) currentUserData.adminRoomId = roomId;
+}
+
+// ========================================
+// 채팅 목록
+// ========================================
+function loadChatList() {
+  if (!currentUser) return;
+  const uid = currentUser.uid;
+  const container = document.getElementById('chatListItems');
+  
+  // 타이틀 업데이트
+  document.getElementById('chatListTitle').textContent = 
+    currentUserData?.role === 'designer' ? '💬 채팅' : '💬 채팅';
+  
+  // 1:1 채팅 목록 리스닝
+  db.ref('userChats/' + uid).on('value', async (snap) => {
+    const chats = snap.val() || {};
+    let items = [];
+    
+    // 고객이면 관리자 채팅 추가 (맨 위)
+    if (currentUserData?.role !== 'designer' && currentUserData?.adminRoomId) {
+      const adminSnap = await db.ref('rooms/' + currentUserData.adminRoomId).once('value');
+      const adminRoom = adminSnap.val();
+      if (adminRoom) {
+        items.push({
+          id: currentUserData.adminRoomId,
+          type: 'admin',
+          name: 'MALLANG',
+          avatar: 'M',
+          avatarClass: 'admin',
+          preview: adminRoom.lastMessage || '새로운 대화',
+          time: adminRoom.lastMessageTime || 0,
+          unread: 0
+        });
+      }
+    }
+    
+    // 1:1 채팅들
+    const chatEntries = Object.entries(chats);
+    for (const [chatId, chatInfo] of chatEntries) {
+      const partnerUid = chatInfo.partnerUid;
+      const partnerSnap = await db.ref('users/' + partnerUid).once('value');
+      const partner = partnerSnap.val();
+      if (!partner) continue;
+      
+      const chatSnap = await db.ref('chats/' + chatId).once('value');
+      const chatData = chatSnap.val();
+      
+      items.push({
+        id: chatId,
+        type: 'direct',
+        name: partner.name || 'Unknown',
+        partnerUid: partnerUid,
+        avatar: (partner.name || '?')[0].toUpperCase(),
+        avatarClass: partner.role === 'designer' ? 'designer' : '',
+        preview: chatData?.lastMessage || '새로운 대화',
+        time: chatData?.lastMessageTime || 0,
+        unread: chatData?.['unread_' + uid] || 0,
+        lang: partner.lang
+      });
+    }
+    
+    // 시간순 정렬 (관리자 제외)
+    const adminItem = items.find(i => i.type === 'admin');
+    const directItems = items.filter(i => i.type !== 'admin')
+      .sort((a, b) => b.time - a.time);
+    items = adminItem ? [adminItem, ...directItems] : directItems;
+    
+    if (items.length === 0) {
+      container.innerHTML = '<div class="no-chats">채팅이 없습니다<br><br>+ 친구추가 버튼으로<br>친구를 추가해보세요!</div>';
+      return;
+    }
+    
+    container.innerHTML = items.map(item => `
+      <div class="chatlist-item" onclick="openChat('${item.id}', '${item.type}', '${item.partnerUid || ''}')">
+        <div class="chatlist-avatar ${item.avatarClass}">${item.avatar}</div>
+        <div class="chatlist-info">
+          <div class="chatlist-name">
+            ${escapeHtml(item.name)}
+            ${item.lang ? '<span style="font-size:0.75rem;color:#999;">' + getFlag(item.lang) + '</span>' : ''}
+          </div>
+          <div class="chatlist-preview">${previewText(item.preview)}</div>
+        </div>
+        <div class="chatlist-meta">
+          <div class="chatlist-time">${formatTime(item.time)}</div>
+          ${item.unread > 0 ? '<div class="chatlist-unread">' + item.unread + '</div>' : ''}
+        </div>
+      </div>
+    `).join('');
+  });
+  
+  // 관리자 채팅방 변경 감지 (실시간 업데이트)
+  if (currentUserData?.adminRoomId) {
+    db.ref('rooms/' + currentUserData.adminRoomId).on('value', () => {
+      // chatlist가 업데이트되도록 userChats 트리거
+      db.ref('userChats/' + uid).once('value'); // 리프레시 트리거
+    });
+  }
+}
+
+// ========================================
+// 채팅방 열기
+// ========================================
+function openChat(chatId, type, partnerUid) {
+  currentChatId = chatId;
+  currentChatType = type;
+  currentChatPartner = partnerUid;
+  
+  // 메시지 컨테이너 초기화
+  document.getElementById('chatMessages').innerHTML = '';
+  document.getElementById('imgPreviewArea').innerHTML = '';
+  pendingImage = null;
+  
+  if (type === 'admin') {
+    // 관리자 채팅
+    document.getElementById('roomPartnerName').textContent = 'MALLANG';
+    document.getElementById('roomPartnerInfo').textContent = T[currentLang]?.subtitle || T.en.subtitle;
+    document.getElementById('roomPartnerLang').textContent = '';
+    document.getElementById('roomPriceBtn').style.display = 'inline-flex';
+    document.getElementById('chatInput').placeholder = T[currentLang]?.placeholder || T.en.placeholder;
+    
+    listenAdminMessages();
+  } else {
+    // 1:1 채팅
+    document.getElementById('roomPriceBtn').style.display = 'none';
+    document.getElementById('chatInput').placeholder = '메시지를 입력하세요...';
+    
+    db.ref('users/' + partnerUid).once('value', snap => {
+      const partner = snap.val();
+      if (partner) {
+        document.getElementById('roomPartnerName').textContent = partner.name;
+        document.getElementById('roomPartnerInfo').textContent = partner.role === 'designer' ? '✂️ Designer' : '👤 Customer';
+        document.getElementById('roomPartnerLang').textContent = getFlag(partner.lang) + ' ' + (partner.lang || '').toUpperCase();
+      }
+    });
+    
+    // 읽음 처리
+    if (currentUser) {
+      db.ref('chats/' + chatId + '/unread_' + currentUser.uid).set(0);
+    }
+    
+    listenDirectMessages();
+  }
+  
+  showScreen('chatRoomScreen');
+}
+
+function backToChatList() {
+  // 리스너 해제
+  if (currentChatId) {
+    if (currentChatType === 'admin') {
+      db.ref('rooms/' + currentChatId + '/messages').off();
+    } else {
+      db.ref('chats/' + currentChatId + '/messages').off();
+    }
+  }
+  currentChatId = null;
+  currentChatType = null;
+  showScreen('chatListScreen');
+}
+
+// ========================================
+// 관리자 채팅 메시지 (기존 rooms 구조)
+// ========================================
+function listenAdminMessages() {
+  const container = document.getElementById('chatMessages');
+  container.innerHTML = '';
+  
+  db.ref('rooms/' + currentChatId + '/messages').off();
+  db.ref('rooms/' + currentChatId + '/messages').on('child_added', snap => {
+    const msg = snap.val();
+    if (!msg || msg.deleted) return;
+    appendMessage(container, msg.text, msg.imageUrl, !msg.isStaff, msg.timestamp, snap.key);
   });
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 메시지 전송
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-async function sendMessage() {
-  console.log('🚀 sendMessage 함수 호출됨!');
+// ========================================
+// 1:1 채팅 메시지
+// ========================================
+function listenDirectMessages() {
+  const container = document.getElementById('chatMessages');
+  container.innerHTML = '';
   
-  if (isSending) {
-    console.log('⏸️ 이미 전송 중...');
-    return;
+  db.ref('chats/' + currentChatId + '/messages').off();
+  db.ref('chats/' + currentChatId + '/messages').on('child_added', snap => {
+    const msg = snap.val();
+    if (!msg || msg.deleted) return;
+    const isMine = msg.sender === currentUser.uid;
+    appendMessage(container, msg.text, msg.imageUrl, isMine, msg.timestamp, snap.key);
+  });
+}
+
+// ========================================
+// 메시지 UI 추가
+// ========================================
+function appendMessage(container, text, imageUrl, isMine, timestamp, msgKey) {
+  const div = document.createElement('div');
+  div.className = 'message ' + (isMine ? 'from-me' : 'from-them');
+  div.id = 'msg-' + msgKey;
+  
+  let content = '';
+  if (imageUrl) {
+    content += `<img src="${imageUrl}" class="msg-img" onclick="window.open('${imageUrl}','_blank')">`;
+  }
+  if (text) {
+    content += renderMessage(text);
   }
   
-  const input = document.getElementById('msg-input');
+  div.innerHTML = `
+    <div class="msg-bubble">${content}</div>
+    <div class="msg-time">${formatTime(timestamp)}</div>
+  `;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+// ========================================
+// 메시지 전송
+// ========================================
+async function sendChatMsg() {
+  if (isSending) return;
+  const input = document.getElementById('chatInput');
   const text = input.value.trim();
   
-  console.log('📝 입력된 텍스트:', text);
-  
-  if (!text) {
-    console.log('❌ 텍스트 없음');
-    return;
-  }
-  
-  console.log('✅ 전송 시작!');
-  console.log('🌍 현재 언어:', lang);
-  console.log('👨‍💼 스태프 모드:', isStaffMode);
+  if (!text && !pendingImage) return;
+  if (!currentChatId) return;
   
   isSending = true;
   input.value = '';
   input.style.height = 'auto';
   
-  // Firebase에 메시지 저장
-  const messageData = {
-    text: text,
-    userId: userId,
-    isStaff: isStaffMode,
-    lang: lang,
-    timestamp: Date.now()
+  let imageUrl = null;
+  
+  // 이미지 업로드
+  if (pendingImage) {
+    document.getElementById('uploadProgress').classList.add('active');
+    try {
+      const fileName = Date.now() + '_' + pendingImage.name;
+      const ref = storage.ref('chat-images/' + currentChatId + '/' + fileName);
+      const snapshot = await ref.put(pendingImage);
+      imageUrl = await snapshot.ref.getDownloadURL();
+    } catch (e) {
+      alert('이미지 업로드 실패: ' + e.message);
+      isSending = false;
+      document.getElementById('uploadProgress').classList.remove('active');
+      return;
+    }
+    document.getElementById('uploadProgress').classList.remove('active');
+    pendingImage = null;
+    document.getElementById('imgPreviewArea').innerHTML = '';
+  }
+  
+  try {
+    if (currentChatType === 'admin') {
+      // 관리자 채팅 (기존 구조)
+      await db.ref('rooms/' + currentChatId + '/messages').push({
+        text: text || '', imageUrl: imageUrl || null, isStaff: false, timestamp: Date.now()
+      });
+      await db.ref('rooms/' + currentChatId).update({
+        lastMessage: imageUrl ? '📷 사진' : text,
+        lastMessageTime: Date.now(),
+        unreadCount: firebase.database.ServerValue.increment(1)
+      });
+    } else {
+      // 1:1 채팅
+      await db.ref('chats/' + currentChatId + '/messages').push({
+        sender: currentUser.uid,
+        text: text || '',
+        imageUrl: imageUrl || null,
+        timestamp: Date.now()
+      });
+      const lastMsg = imageUrl ? '📷 사진' : text;
+      const updates = {
+        lastMessage: lastMsg,
+        lastMessageTime: Date.now()
+      };
+      updates['unread_' + currentChatPartner] = firebase.database.ServerValue.increment(1);
+      await db.ref('chats/' + currentChatId).update(updates);
+    }
+  } catch (error) {
+    alert('전송 실패: ' + error.message);
+  } finally { isSending = false; }
+}
+
+// ========================================
+// 이미지 미리보기
+// ========================================
+function previewImage(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  // 10MB 제한
+  if (file.size > 10 * 1024 * 1024) {
+    alert('10MB 이하의 이미지만 업로드 가능합니다');
+    return;
+  }
+  
+  pendingImage = file;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('imgPreviewArea').innerHTML = `
+      <div class="img-preview" style="padding: 0.5rem 1rem;">
+        <img src="${e.target.result}">
+        <button class="img-preview-remove" onclick="cancelImage()">✕</button>
+      </div>
+    `;
   };
-  
-  try {
-    await messagesRef.push(messageData);
-    console.log('📤 Firebase에 메시지 저장 완료');
-  } catch (error) {
-    console.error('❌ Firebase 저장 실패:', error);
-  }
-  
-  // 자동응답 제거 - 스태프가 직접 응답
-  setTimeout(() => {
-    isSending = false;
-  }, 400);
+  reader.readAsDataURL(file);
+  event.target.value = '';
 }
 
-// 번역 중 인디케이터
-function addTranslatingIndicator() {
-  const container = document.getElementById('messages');
-  const typing = document.getElementById('typing');
-  
-  const div = document.createElement('div');
-  div.className = 'translating-indicator';
-  div.style.cssText = 'text-align:center;color:var(--text3);font-size:0.75rem;padding:0.5rem;opacity:0.7;';
-  div.innerHTML = '🌐 번역 중...';
-  
-  container.insertBefore(div, typing);
-  container.scrollTop = container.scrollHeight;
-  
-  return div;
+function cancelImage() {
+  pendingImage = null;
+  document.getElementById('imgPreviewArea').innerHTML = '';
 }
 
-function removeTranslatingIndicator(element) {
-  if (element && element.parentNode) {
-    element.remove();
+// ========================================
+// 친구 추가
+// ========================================
+function showFriendModal() {
+  document.getElementById('friendModal').classList.add('active');
+  document.getElementById('friendSearchInput').value = '';
+  document.getElementById('friendResult').className = 'modal-result';
+  document.getElementById('friendResult').innerHTML = '';
+  
+  // 힌트 텍스트 업데이트
+  if (currentUserData?.role === 'designer') {
+    document.getElementById('friendSearchHint').textContent = '고객 이메일을 입력하세요';
+    document.getElementById('friendSearchInput').placeholder = 'email@example.com';
+  } else {
+    document.getElementById('friendSearchHint').textContent = '디자이너 ID를 입력하세요';
+    document.getElementById('friendSearchInput').placeholder = 'ID 입력 (예: Jina)';
   }
 }
 
-// 번역문 추가
-function addTranslation(translatedText) {
-  const container = document.getElementById('messages');
-  const typing = document.getElementById('typing');
-  
-  const div = document.createElement('div');
-  div.style.cssText = 'text-align:center;color:var(--text2);font-size:0.8rem;padding:0.5rem;background:rgba(0,0,0,0.03);margin:0.3rem 1rem;border-radius:0.5rem;';
-  div.innerHTML = `🇰🇷 ${translatedText}`;
-  
-  container.insertBefore(div, typing);
-  container.scrollTop = container.scrollHeight;
+function closeFriendModal() {
+  document.getElementById('friendModal').classList.remove('active');
 }
 
-function addMessage(className, text) {
-  const div = document.createElement('div');
-  div.className = 'msg ' + className;
-  div.textContent = text;
+async function searchFriend() {
+  const query = document.getElementById('friendSearchInput').value.trim();
+  const resultEl = document.getElementById('friendResult');
   
-  const time = new Date().toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'});
-  const timeDiv = document.createElement('div');
-  timeDiv.className = 'msg-time';
-  timeDiv.textContent = time;
-  div.appendChild(timeDiv);
+  if (!query) return;
   
-  // 스태프가 보낸 메시지에 취소 버튼 추가
-  if (isStaffMode && className === 'from-me') {
-    const msgId = 'msg-' + Date.now();
-    div.id = msgId;
-    
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'msg-delete-btn';
-    deleteBtn.innerHTML = '×';
-    deleteBtn.onclick = function() {
-      deleteMessage(msgId);
-    };
-    div.appendChild(deleteBtn);
-    
-    // 히스토리에 추가 (최근 5개만 유지)
-    staffMessageHistory.push(msgId);
-    if (staffMessageHistory.length > 5) {
-      // 가장 오래된 메시지의 취소 기능 비활성화
-      const oldestId = staffMessageHistory.shift();
-      const oldestMsg = document.getElementById(oldestId);
-      if (oldestMsg) {
-        oldestMsg.classList.remove('deletable');
-        const oldBtn = oldestMsg.querySelector('.msg-delete-btn');
-        if (oldBtn) oldBtn.remove();
+  let foundUid = null;
+  let foundUser = null;
+  
+  if (currentUserData?.role === 'designer') {
+    // 디자이너는 고객 이메일로 검색
+    const snap = await db.ref('users').orderByChild('email').equalTo(query).once('value');
+    const users = snap.val();
+    if (users) {
+      const entries = Object.entries(users);
+      for (const [uid, user] of entries) {
+        if (user.role !== 'designer') {
+          foundUid = uid;
+          foundUser = user;
+          break;
+        }
       }
     }
-    
-    // 취소 가능한 메시지 표시
-    div.classList.add('deletable');
-  }
-  
-  const container = document.getElementById('messages');
-  const typing = document.getElementById('typing');
-  container.insertBefore(div, typing);
-  
-  container.scrollTop = container.scrollHeight;
-}
-
-// 메시지 삭제 함수
-function deleteMessage(msgId) {
-  const msg = document.getElementById(msgId);
-  if (!msg) return;
-  
-  // 삭제 애니메이션
-  msg.style.opacity = '0';
-  msg.style.transform = 'translateX(20px)';
-  
-  setTimeout(() => {
-    msg.remove();
-    
-    // 히스토리에서 제거
-    const index = staffMessageHistory.indexOf(msgId);
-    if (index > -1) {
-      staffMessageHistory.splice(index, 1);
-    }
-    
-    // 삭제 알림
-    const container = document.getElementById('messages');
-    const notice = document.createElement('div');
-    notice.style.cssText = 'text-align:center;color:var(--text3);font-size:0.8rem;padding:0.5rem;opacity:0.7;';
-    notice.textContent = '메시지가 삭제되었습니다';
-    container.appendChild(notice);
-    
-    setTimeout(() => notice.remove(), 2000);
-  }, 200);
-}
-
-// 스태프 메시지 추가 (취소 가능)
-function addStaffMessage(htmlContent) {
-  const container = document.getElementById('messages');
-  const typing = document.getElementById('typing');
-  const time = new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
-  
-  const div = document.createElement('div');
-  div.className = 'msg from-them';
-  div.innerHTML = `<div style="white-space:pre-wrap;">${htmlContent}</div><div class="msg-time">${time}</div>`;
-  
-  // 스태프 모드일 때 취소 버튼 추가
-  if (isStaffMode) {
-    const msgId = 'msg-' + Date.now();
-    div.id = msgId;
-    
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'msg-delete-btn';
-    deleteBtn.innerHTML = '×';
-    deleteBtn.onclick = function() {
-      deleteMessage(msgId);
-    };
-    div.appendChild(deleteBtn);
-    
-    staffMessageHistory.push(msgId);
-    if (staffMessageHistory.length > 5) {
-      const oldestId = staffMessageHistory.shift();
-      const oldestMsg = document.getElementById(oldestId);
-      if (oldestMsg) {
-        oldestMsg.classList.remove('deletable');
-        const oldBtn = oldestMsg.querySelector('.msg-delete-btn');
-        if (oldBtn) oldBtn.remove();
+  } else {
+    // 고객은 디자이너 profileId로 검색
+    const uidSnap = await db.ref('profileIds/' + query.toLowerCase()).once('value');
+    if (uidSnap.exists()) {
+      foundUid = uidSnap.val();
+      const userSnap = await db.ref('users/' + foundUid).once('value');
+      foundUser = userSnap.val();
+      if (foundUser && foundUser.role !== 'designer') {
+        foundUser = null; // 디자이너만
       }
     }
-    div.classList.add('deletable');
   }
   
-  container.insertBefore(div, typing);
-  container.scrollTop = container.scrollHeight;
+  if (foundUser && foundUid !== currentUser.uid) {
+    // 이미 친구인지 확인
+    const friendCheck = await db.ref('friends/' + currentUser.uid + '/' + foundUid).once('value');
+    const alreadyFriend = friendCheck.exists();
+    
+    resultEl.className = 'modal-result found';
+    resultEl.innerHTML = `
+      <div class="modal-result-user">
+        <div class="chatlist-avatar ${foundUser.role === 'designer' ? 'designer' : ''}" style="width:40px;height:40px;font-size:1rem;">
+          ${(foundUser.name || '?')[0].toUpperCase()}
+        </div>
+        <div style="flex:1;">
+          <div style="font-weight:600;">${escapeHtml(foundUser.name)}</div>
+          <div style="font-size:0.8rem;color:#888;">${foundUser.role === 'designer' ? '✂️ Designer' : '👤 Customer'} ${foundUser.profileId ? '· ' + foundUser.profileId : ''}</div>
+        </div>
+        ${alreadyFriend ? 
+          '<span style="color:#888;font-size:0.85rem;">이미 친구</span>' : 
+          `<button class="gold-btn" style="width:auto;padding:0.4rem 1rem;" onclick="addFriend('${foundUid}')">추가</button>`
+        }
+      </div>
+    `;
+  } else {
+    resultEl.className = 'modal-result not-found';
+    resultEl.innerHTML = '검색 결과가 없습니다';
+  }
 }
 
-// 테스트 함수
-async function testTranslation() {
-  const resultDiv = document.getElementById('test-result');
-  resultDiv.innerHTML = `
-    📊 현재 상태:<br>
-    언어: ${lang} (${LANG_NAMES[lang]})<br>
-    스태프 모드: ${isStaffMode}<br>
-    API 키: ${OPENAI_API_KEY ? '✅ 있음' : '❌ 없음'}<br><br>
-    🔄 번역 테스트 중...
-  `;
+async function addFriend(friendUid) {
+  if (!currentUser) return;
+  const uid = currentUser.uid;
   
   try {
-    const testText = '안녕하세요';
-    const translated = await translateText(testText, 'zh');
-    resultDiv.innerHTML += `<br>✅ 성공!<br>원문: ${testText}<br>번역: ${translated}`;
-  } catch (error) {
-    resultDiv.innerHTML += `<br>❌ 실패: ${error.message}`;
-  }
-}
-
-// 메뉴 전체 번역 함수
-async function translateAllMenusNow() {
-  const resultDiv = document.getElementById('test-result');
-  resultDiv.innerHTML = '📚 메뉴 번역 시작...<br><br>';
-  
-  const menuKeys = ['makeup', 'hair', 'spa', 'photo'];
-  const langs = ['en', 'zh', 'ja', 'th'];
-  const translatedMenus = {};
-  
-  for (const menuKey of menuKeys) {
-    resultDiv.innerHTML += `${menuKey} 번역 중...<br>`;
-    const menuText = MENUS[menuKey];
-    translatedMenus[menuKey] = { ko: menuText };
+    // 양방향 친구 등록
+    await db.ref('friends/' + uid + '/' + friendUid).set({ since: Date.now() });
+    await db.ref('friends/' + friendUid + '/' + uid).set({ since: Date.now() });
     
-    for (const targetLang of langs) {
-      try {
-        resultDiv.innerHTML += `  → ${targetLang}... `;
-        const translated = await translateText(menuText, targetLang);
-        translatedMenus[menuKey][targetLang] = translated;
-        resultDiv.innerHTML += `✅<br>`;
-        
-        // API 부하 방지 (1초 대기)
-        await new Promise(r => setTimeout(r, 1000));
-      } catch (error) {
-        resultDiv.innerHTML += `❌ (${error.message})<br>`;
-        translatedMenus[menuKey][targetLang] = menuText;
-      }
-    }
-    resultDiv.innerHTML += '<br>';
-  }
-  
-  resultDiv.innerHTML += '<br>✅ 완료!<br><br>';
-  resultDiv.innerHTML += '<button onclick="copyTranslationResult()" style="padding:0.5rem;background:#007bff;color:white;border:none;border-radius:0.3rem;cursor:pointer;margin-bottom:0.5rem;">📋 결과 복사</button><br>';
-  resultDiv.innerHTML += '<textarea id="translation-result" style="width:100%;height:150px;font-size:0.7rem;">' + 
-    JSON.stringify(translatedMenus, null, 2) + 
-    '</textarea><br><small>위 내용을 복사해서 저에게 보내주세요!</small>';
-  
-  // 전역 변수로 저장
-  window.translationResult = translatedMenus;
-}
-
-// 결과 복사 함수
-function copyTranslationResult() {
-  const textarea = document.getElementById('translation-result');
-  textarea.select();
-  document.execCommand('copy');
-  alert('복사 완료! 이제 저에게 붙여넣기 해주세요!');
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 번역 기능
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-async function translateText(text, targetLang) {
-  // 캐시 확인
-  const cacheKey = `${text}_${targetLang}`;
-  if (translationCache.has(cacheKey)) {
-    return translationCache.get(cacheKey);
-  }
-  
-  try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [{
-          role: 'user',
-          content: `Translate the following text to ${LANG_NAMES[targetLang]}. Only output the translation, nothing else:\n\n${text}`
-        }],
-        temperature: 0.3,
-        max_tokens: 1000
-      })
-    });
+    // 채팅방 생성
+    const chatId = [uid, friendUid].sort().join('_');
     
-    if (!response.ok) {
-      throw new Error('Translation failed');
+    const chatSnap = await db.ref('chats/' + chatId).once('value');
+    if (!chatSnap.exists()) {
+      await db.ref('chats/' + chatId).set({
+        participants: { [uid]: true, [friendUid]: true },
+        lastMessage: '',
+        lastMessageTime: Date.now(),
+        ['unread_' + uid]: 0,
+        ['unread_' + friendUid]: 0
+      });
     }
     
-    const data = await response.json();
-    const translation = data.choices[0].message.content.trim();
+    // 양쪽 유저의 채팅 목록에 추가
+    await db.ref('userChats/' + uid + '/' + chatId).set({ partnerUid: friendUid });
+    await db.ref('userChats/' + friendUid + '/' + chatId).set({ partnerUid: uid });
     
-    // 캐시에 저장
-    translationCache.set(cacheKey, translation);
+    closeFriendModal();
+    alert('친구 추가 완료! ✅');
     
-    return translation;
   } catch (error) {
-    console.error('Translation error:', error);
-    return text; // 실패 시 원문 반환
+    alert('친구 추가 실패: ' + error.message);
   }
 }
 
-// 언어 자동 감지 후 한국어로 번역
-async function translateToKorean(text) {
-  try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [{
-          role: 'user',
-          content: `Translate the following text to Korean. Only output the Korean translation, nothing else:\n\n${text}`
-        }],
-        temperature: 0.3,
-        max_tokens: 1000
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error('Translation failed');
+// ========================================
+// 스태프 관리자 패널 (기존 유지)
+// ========================================
+const STAFF_PW = 'mallang1347';
+
+function goStaff() {
+  const pw = prompt('스태프 비밀번호:');
+  if (pw === STAFF_PW) {
+    showScreen('staffScreen');
+    loadCustomerList();
+  } else if (pw !== null) {
+    alert('비밀번호가 틀렸습니다.');
+  }
+}
+
+function loadCustomerList() {
+  db.ref('rooms').on('value', snap => {
+    const rooms = snap.val();
+    if (!rooms) {
+      document.getElementById('customerList').innerHTML = '<div style="padding:2rem;text-align:center;color:#999;">아직 고객이 없습니다</div>';
+      return;
     }
-    
-    const data = await response.json();
-    return data.choices[0].message.content.trim();
-  } catch (error) {
-    console.error('Translation error:', error);
-    return text;
-  }
-}
-
-function showReserveInfo() {
-  // 현재 언어에 맞는 예약 양식
-  const reserveData = RESERVE_FORMS[lang] || RESERVE_FORMS.ko;
-  const intro = reserveData.intro;
-  const form = reserveData.form;
-  const copyBtnText = reserveData.copyBtn;
-
-  // 입력창과 복사 버튼이 있는 특별한 메시지
-  const container = document.getElementById('messages');
-  const typing = document.getElementById('typing');
-  const time = new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
-  
-  const div = document.createElement('div');
-  div.className = 'msg from-them';
-  div.innerHTML = `
-    <div style="white-space:pre-wrap;">${intro}</div>
-    <div style="margin-top:10px;padding:10px;background:rgba(255,255,255,0.5);border-radius:8px;">
-      <textarea id="reserve-input" style="width:100%;min-height:180px;padding:10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;resize:vertical;">${form}</textarea>
-      <button onclick="copyReservation()" style="margin-top:8px;padding:8px 16px;background:var(--gold);color:var(--black);border:none;border-radius:6px;cursor:pointer;font-weight:500;">${copyBtnText}</button>
-    </div>
-    <div class="msg-time">${time}</div>
-  `;
-  
-  container.insertBefore(div, typing);
-  container.scrollTop = container.scrollHeight;
-}
-
-// 예약 정보 복사 함수
-function copyReservation() {
-  const textarea = document.getElementById('reserve-input');
-  const text = textarea.value;
-  
-  // 현재 언어에 맞는 복사 완료 메시지
-  const reserveData = RESERVE_FORMS[lang] || RESERVE_FORMS.ko;
-  const copiedMsg = reserveData.copied;
-  
-  // 클립보드에 복사
-  navigator.clipboard.writeText(text).then(() => {
-    // 예약 정보 저장
-    savedReservation = text;
-    
-    // 복사 완료 메시지
-    addMessage('from-them', copiedMsg);
+    const html = Object.entries(rooms)
+      .sort((a,b) => b[1].lastMessageTime - a[1].lastMessageTime)
+      .map(([id, r]) => `
+        <div class="customer-item ${selectedRoomId === id ? 'active' : ''}" onclick="selectCustomer('${id}')">
+          <div class="customer-name">
+            ${r.userName || '이름 없음'}
+            ${r.unreadCount > 0 ? `<span class="unread">${r.unreadCount}</span>` : ''}
+          </div>
+          <div class="customer-preview">${previewText(r.lastMessage)}</div>
+          <div class="customer-time">${formatTime(r.lastMessageTime)}</div>
+        </div>
+      `).join('');
+    document.getElementById('customerList').innerHTML = html;
   });
 }
 
-function showPriceInfo() {
-  const msg = `가격 문의 감사합니다!
+function selectCustomer(roomId) {
+  selectedRoomId = roomId;
+  db.ref('rooms/' + roomId).once('value', snap => {
+    const r = snap.val();
+    if (!r) return;
+    document.getElementById('selectedName').textContent = r.userName || '이름 없음';
+    document.getElementById('selectedInfo').textContent = r.userEmail || '';
+    document.getElementById('selectedLang').textContent = getFlag(r.userLang) + ' ' + (r.userLang || 'EN').toUpperCase();
+  });
+  db.ref('rooms/' + roomId + '/unreadCount').set(0);
+  listenStaffMessages(roomId);
+}
 
-어떤 서비스의 가격이 궁금하신가요?
-• 메이크업
-• 헤어
-• 스파
-• 포토
-
-메뉴 버튼을 눌러 확인하세요.`;
+function listenStaffMessages(roomId) {
+  const container = document.getElementById('staffMsg');
+  container.innerHTML = '';
   
-  addMessage('from-them', msg);
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 메뉴 표시 (채팅창에 텍스트로)
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function showMenu(key) {
-  const menuData = TRANSLATED_MENUS[key];
-  if (!menuData) return;
-  
-  // 현재 언어에 맞는 메뉴 선택
-  const menuText = menuData[lang] || menuData.ko;
-  addMessage('from-them', menuText);
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 스태프 창
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function openStaffPanel() {
-  document.getElementById('staff-panel').classList.add('show');
-}
-
-function closeStaffPanel() {
-  document.getElementById('staff-panel').classList.remove('show');
-}
-
-function sendQuickReply(type) {
-  // 위챗은 QR 이미지와 함께 표시
-  if (type === 'wechat') {
-    const amount = prompt('예약금 금액을 입력하세요 (원화):\n예: 30000');
-    if (!amount) return;
-    
-    const krw = parseInt(amount.replace(/,/g, ''));
-    const formatted = krw.toLocaleString();
-    
-    const text = `🇨🇳 微信支付 / 支付宝
-
-预约金： ${formatted} 韩元
-
-• 总付款金额 – 预约金 = 现场支付（余款）
-
-• 支付预约金后，预约即确认完成。
-• 30分钟内未完成付款，预约将自动取消。
-• 可在预约日前2天（韩国时间下午6点前）取消并退款。
-• 预约前一天取消或更改，预约金不予退还。
-• 付款完成后，请发送付款成功的截图。`;
-    
-    // QR 이미지 포함 메시지
-    const htmlContent = `${text}<img src="wechat-qr.jpg" style="max-width:250px;margin-top:10px;border-radius:8px;display:block;">`;
-    addStaffMessage(htmlContent);
-    
-  } else if (type === 'paypal') {
-    const amount = prompt('예약금 금액을 입력하세요 (원화):\n예: 30000');
-    if (!amount) return;
-    
-    const krw = parseInt(amount.replace(/,/g, ''));
-    const usd = Math.round((krw / 1333) * 10) / 10;
-    const krwFormatted = krw.toLocaleString();
-    
-    // 현재 언어에 맞는 페이팔 템플릿 사용
-    const template = PAYPAL_TEMPLATES[lang] || PAYPAL_TEMPLATES.en;
-    let text = template(krwFormatted, usd.toFixed(1));
-    
-    // 링크를 클릭 가능하게 변환
-    text = text.replace(
-      'https://www.paypal.com/ncp/payment/LHVBDE7UWNLD4',
-      '<a href="https://www.paypal.com/ncp/payment/LHVBDE7UWNLD4" target="_blank" style="color:#0070ba;text-decoration:underline;">https://www.paypal.com/ncp/payment/LHVBDE7UWNLD4</a>'
-    );
-    
-    addStaffMessage(text);
-    
-  } else if (type === 'japan') {
-    const amount = prompt('予約金額を入力してください（韓国ウォン）:\n例: 30000');
-    if (!amount) return;
-    
-    const krw = parseInt(amount.replace(/,/g, ''));
-    const jpy = Math.ceil((krw / 8.9) / 100) * 100; // 100엔 단위 올림
-    const krwFormatted = krw.toLocaleString();
-    const jpyFormatted = jpy.toLocaleString();
-    
-    const text = `🇯🇵 日本 銀行振込
-
-予約金 : ${krwFormatted} won ( ${jpyFormatted} 円 )
-
-paypay銀行(0033)
-はやぶさ支店(003)
-普通7862427
-キムジョンヒ
-
-海外決済は固定為替レートを適用しております。
-ご案内している円（JPY）金額には海外送金手数料が含まれております。
- * 支払い後の詳細(画面)をお願いします*
- * 国際送金手数料が含まれた金額です*
-
-• 総お支払い金額 − 予約金 ＝ 当日現地決済（残額）
-• 予約金のお支払い完了後、予約が確定となります。
-• 30分以内にお支払いが確認できない場合、予約は自動的にキャンセルとなります。
-• ご予約日の2日前18:00（韓国時間・KST）までキャンセルおよび返金が可能です。
-• ご予約日前日のキャンセルまたは変更は、予約金の返金はできません。
-• お支払い後、決済完了画面（スクリーンショット）をお送りください。`;
-    
-    addStaffMessage(text);
-    
-  } else if (type === 'complete') {
-    // 현재 언어에 맞는 예약완료 안내문
-    const completeText = TRANSLATED_QUICK_REPLIES.complete[lang] || TRANSLATED_QUICK_REPLIES.complete.ko;
-    
-    // 저장된 예약 정보가 있으면 함께 표시
-    if (savedReservation) {
-      const completeMsg = `📋 예약 내용
-
-${savedReservation}
-
-━━━━━━━━━━━━━━━━━━━━━━━━
-
-${completeText}`;
-      
-      addMessage('from-them', completeMsg);
-    } else {
-      // 저장된 예약 정보가 없으면 안내문만
-      addMessage('from-them', completeText);
-    }
-    
-  } else if (type === 'address') {
-    // 현재 언어에 맞는 주소
-    const addressText = TRANSLATED_QUICK_REPLIES.address[lang] || TRANSLATED_QUICK_REPLIES.address.ko;
-    
-    // 주소 메시지와 인스타 버튼 함께 표시
-    const container = document.getElementById('messages');
-    const typing = document.getElementById('typing');
-    const time = new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
-    
+  db.ref('rooms/' + roomId + '/messages').off();
+  db.ref('rooms/' + roomId + '/messages').on('child_added', snap => {
+    const msg = snap.val();
+    if (!msg) return;
+    const msgKey = snap.key;
     const div = document.createElement('div');
-    div.className = 'msg from-them';
-    div.innerHTML = `<div style="white-space:pre-wrap;">${addressText}</div><a href="https://www.instagram.com/reel/DIvxoGwy482/?igsh=MTI5cW8wM3MwNGM1OA==" target="_blank" style="display:inline-block;margin-top:10px;padding:10px 20px;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:white;text-decoration:none;border-radius:20px;font-weight:500;"><span style="margin-right:5px;">📸</span>Instagram 오시는 길 영상</a><div class="msg-time">${time}</div>`;
+    div.id = 'msg-' + msgKey;
     
-    container.insertBefore(div, typing);
-    container.scrollTop = container.scrollHeight;
-    
-  } else {
-    const text = QUICK_REPLIES[type];
-    if (text) {
-      addMessage('from-them', text);
-    }
-  }
-  closeStaffPanel();
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 이벤트 리스너 등록
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-document.addEventListener('DOMContentLoaded', function() {
-  // Firebase 실시간 메시지 수신
-  messagesRef.on('child_added', function(snapshot) {
-    const message = snapshot.val();
-    
-    // 내가 보낸 메시지는 이미 화면에 있으므로 스킵
-    if (message.userId === userId) {
+    if (msg.deleted) {
+      div.style.display = 'none';
+      container.appendChild(div);
       return;
     }
     
-    // 다른 사람이 보낸 메시지 표시
-    const className = message.isStaff ? 'from-them' : 'from-me';
-    addMessage(className, message.text);
+    div.className = 'message ' + (msg.isStaff ? 'from-me' : 'from-them');
+    const deleteBtn = msg.isStaff ? `<button class="msg-delete" onclick="deleteMessage('${roomId}','${msgKey}')" title="삭제">✕</button>` : '';
     
-    console.log('📥 새 메시지 수신:', message.text);
+    let content = '';
+    if (msg.imageUrl) content += `<img src="${msg.imageUrl}" class="msg-img" onclick="window.open('${msg.imageUrl}','_blank')">`;
+    if (msg.text) content += renderMessage(msg.text);
+    
+    div.innerHTML = `
+      <div class="msg-bubble" style="position:relative;">${deleteBtn}${content}</div>
+      <div class="msg-time">${formatTime(msg.timestamp)}</div>
+    `;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
   });
   
-  // 언어 버튼
-  document.querySelectorAll('.lang-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const l = this.dataset.lang;
-      const flags = {ko:'🇰🇷',zh:'🇨🇳',ja:'🇯🵵',th:'🇹🇭',en:'🌐',auto:'✦'};
-      const names = {ko:'한국어',zh:'中文',ja:'日本語',th:'ภาษาไทย',en:'English',auto:'Other'};
-      selectLanguage(l, names[l], flags[l]);
+  db.ref('rooms/' + roomId + '/messages').on('child_changed', snap => {
+    const msg = snap.val();
+    const div = document.getElementById('msg-' + snap.key);
+    if (div && msg && msg.deleted) div.style.display = 'none';
+  });
+}
+
+async function deleteMessage(roomId, msgKey) {
+  if (!confirm('이 메시지를 삭제하시겠습니까?')) return;
+  await db.ref('rooms/' + roomId + '/messages/' + msgKey).update({ deleted: true, text: '' });
+}
+
+async function sendStaffMsg() {
+  if (isSending) return;
+  const input = document.getElementById('staffInput');
+  const text = input.value.trim();
+  if (!text || !selectedRoomId) { alert('고객을 먼저 선택하세요!'); return; }
+  
+  isSending = true;
+  input.value = '';
+  input.style.height = 'auto';
+  
+  try {
+    await db.ref('rooms/' + selectedRoomId + '/messages').push({
+      text: text, isStaff: true, timestamp: Date.now()
     });
-  });
-  
-  // 전송 버튼
-  document.getElementById('send-btn').addEventListener('click', sendMessage);
-  
-  // Enter 키 (한글 입력 버그 수정)
-  let isComposing = false;
-  
-  document.getElementById('msg-input').addEventListener('compositionstart', function() {
-    isComposing = true;
-  });
-  
-  document.getElementById('msg-input').addEventListener('compositionend', function() {
-    isComposing = false;
-  });
-  
-  document.getElementById('msg-input').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
-      e.preventDefault();
-      sendMessage();
-    }
-    // 자동 높이 조절
-    this.style.height = 'auto';
-    this.style.height = this.scrollHeight + 'px';
-  });
-  
-  // 사이드바 버튼 (동적 생성되므로 위임)
-  document.getElementById('sidebar').addEventListener('click', function(e) {
-    if (e.target.classList.contains('sidebar-btn')) {
-      const key = e.target.dataset.menu;
-      if (key === 'reserve') {
-        showReserveInfo();
-      } else {
-        showMenu(key);
-      }
-    }
-  });
-  
-  // 언어 뱃지 클릭 시 언어 선택 화면으로
-  document.getElementById('lang-badge').addEventListener('click', function() {
-    document.getElementById('lang-screen').style.display = 'flex';
-    document.getElementById('lang-screen').classList.remove('hide');
-    document.getElementById('app').style.display = 'none';
-  });
-  
-  // 스태프 버튼
-  document.getElementById('staff-btn').addEventListener('click', openStaffPanel);
-  document.getElementById('staff-close').addEventListener('click', closeStaffPanel);
-  
-  // 빠른답변 버튼
-  document.querySelectorAll('.quick-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const type = this.dataset.type;
-      sendQuickReply(type);
+    await db.ref('rooms/' + selectedRoomId).update({
+      lastMessage: text, lastMessageTime: Date.now()
     });
+  } catch (error) { alert('전송 실패: ' + error.message); }
+  finally { isSending = false; }
+}
+
+// 빠른답변
+function toggleQuickReplies() {
+  document.querySelectorAll('#quickReplies .quick-reply-btn').forEach(btn => {
+    btn.style.display = btn.style.display === 'none' ? 'inline-block' : 'none';
   });
+}
+
+function quickReply(key) {
+  if (!selectedRoomId) { alert('고객을 먼저 선택하세요!'); return; }
+  const input = document.getElementById('staffInput');
+  
+  if (key === 'paypal') {
+    const won = prompt('예약금 (원/KRW):');
+    if (!won) return;
+    const w = parseInt(won.replace(/,/g,''));
+    const usd = (w / 1350).toFixed(1);
+    input.value = `💳 PayPal Payment\n\ndeposit : ${w.toLocaleString()} won / USD ${usd}\n(Please make the payment in USD.)\n\nhttps://www.paypal.com/ncp/payment/LHVBDE7UWNLD4\n\n• Total Amount – Deposit = On-site Payment\n• Your reservation will be confirmed after the deposit payment.\n• If not completed within 30 minutes, reservation will be canceled.\n• Cancellations available until 6:00 PM (KST), two days before.\n• Please send a screenshot after completing payment.`;
+  } else if (key === 'wechat') {
+    const won = prompt('预约金 (韩元/KRW):');
+    if (!won) return;
+    const w = parseInt(won.replace(/,/g,''));
+    input.value = `[WECHAT_QR]\n\n预约金：${w.toLocaleString()} 韩元\n\n• 总付款金额 – 预约金 = 现场支付\n• 支付预约金后，预约即确认完成。\n• 30分钟内未完成付款，预约将自动取消。\n• 可在预约日前2天下午6点前取消并退款。\n• 付款完成后，请发送截图。`;
+  } else if (key === 'japan') {
+    const won = prompt('予約金 (ウォン/KRW):');
+    if (!won) return;
+    const w = parseInt(won.replace(/,/g,''));
+    const jpy = Math.ceil(w / 8.9 / 100) * 100;
+    input.value = `🇯🇵 予約金のご案内\n\n予約金 : ${w.toLocaleString()} won ( ${jpy.toLocaleString()} 円 )\n\npaypay銀行(0033)\nはやぶさ支店(003)\n普通7862427\nキムジョンヒ\n\n* 支払い後の詳細(画面)をお願いします *\n\n• 総お支払い金額 − 予約金 ＝ 当日現地決済\n• 予約金のお支払い完了後、予約が確定となります。\n• 30分以内にお支払いが確認できない場合、予約は自動キャンセルとなります。\n• ご予約日の2日前18:00(KST)までキャンセル可能です。`;
+  } else if (key === 'address') {
+    input.value = `📍 [ Address ]\n21-3, Seolleung-ro 161-gil, Gangnam-gu, Seoul\n(서울시 강남구 신사동 662-10)\n\n[DIRECTIONS_BTN]`;
+  } else if (key === 'confirmed') {
+    const info = prompt('고객 예약 정보 입력\n(예: 3/15(토) 14:00 / Yuki / 메이크업A+헤어B)');
+    if (!info) return;
+    input.value = info + '\n' + quickConfirmed;
+  }
+  input.focus();
+  autoResize(input);
+}
+
+function searchCustomers() {
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  document.querySelectorAll('.customer-item').forEach(item => {
+    item.style.display = item.textContent.toLowerCase().includes(q) ? 'block' : 'none';
+  });
+}
+
+// ========================================
+// 메뉴/가격표 사이드바
+// ========================================
+const menuData = {
+  makeup: `<h4>💄 [ Lady - Make up ]</h4>
+<div class="price-row"><span>A (daily)</span><span>₩100,000</span></div>
+<div class="price-row"><span>B (idol, photo shoot)</span><span>₩110,000</span></div>
+<h4>🤵 [ Man - Make up ]</h4>
+<div class="price-row"><span>A (daily)</span><span>₩60,000</span></div>
+<div class="price-row"><span>B (idol, photo shoot)</span><span>₩90,000</span></div>
+<h4>📚 [ Make up Lesson ]</h4>
+<div class="price-row"><span>90 min</span><span>₩350,000</span></div>
+<div class="divider"></div>
+<h4>✨ Hair Styling (Setting)</h4>
+<p class="note">(+ hair wash +₩20,000)</p>
+<div class="price-row"><span>[ Lady ] A (daily)</span><span>₩45,000</span></div>
+<div class="price-row"><span>B (semi up style)</span><span>₩60,000</span></div>
+<div class="price-row"><span>C (up style)</span><span>₩80,000</span></div>
+<div class="price-row"><span>[ Man ]</span><span>₩40,000</span></div>
+<div class="divider"></div>
+<h4>⏰ Early Charge (before 10:00 AM)</h4>
+<div class="price-row"><span>AM 9:00 Hair</span><span>+₩10,000</span></div>
+<div class="price-row"><span>AM 9:00 Make up</span><span>+₩10,000</span></div>
+<div class="price-row"><span>AM 8:00 Hair</span><span>+₩20,000</span></div>
+<div class="price-row"><span>AM 8:00 Make up</span><span>+₩20,000</span></div>
+<div class="price-row"><span>AM 7:00 Hair</span><span>+₩30,000</span></div>
+<div class="price-row"><span>AM 7:00 Make up</span><span>+₩30,000</span></div>`,
+
+  hair: `<h4>✂️ Cut</h4>
+<div class="price-row"><span>Lady cut</span><span>₩60,000~</span></div>
+<div class="price-row"><span>Man cut</span><span>₩50,000~</span></div>
+<h4>🎨 Color</h4>
+<div class="price-row"><span>All color</span><span>₩120,000~</span></div>
+<div class="price-row"><span>Root color</span><span>₩90,000~</span></div>
+<div class="price-row"><span>Bleach</span><span>₩100,000~</span></div>
+<div class="price-row"><span>Man color</span><span>₩120,000~</span></div>
+<h4>🌀 Perm</h4>
+<div class="price-row"><span>Setting perm</span><span>₩140,000~</span></div>
+<div class="price-row"><span>Down perm</span><span>₩120,000~</span></div>
+<div class="price-row"><span>Straight</span><span>₩180,000~</span></div>
+<div class="price-row"><span>Man perm</span><span>₩140,000~</span></div>
+<h4>💊 Treatment</h4>
+<div class="price-row"><span>Basic</span><span>₩50,000~</span></div>
+<div class="price-row"><span>Premium</span><span>₩80,000~</span></div>
+<p class="note">* 가격은 길이/모량에 따라 달라질 수 있습니다.<br>* 정확한 가격은 상담 후 안내드립니다.</p>`,
+
+  spa: `<h4>💆 Head Spa</h4>
+<div class="price-row"><span>Basic (30min)</span><span>₩60,000</span></div>
+<div class="price-row"><span>Premium (60min)</span><span>₩100,000</span></div>
+<div class="price-row"><span>Scalp scaling + Spa</span><span>₩120,000</span></div>`,
+
+  photo: `<h4>📸 Profile / ID Photo</h4>
+<div class="price-row"><span>증명사진 (ID)</span><span>₩60,000</span></div>
+<div class="price-row"><span>프로필 촬영</span><span>₩120,000</span></div>
+<div class="price-row"><span>커플 촬영</span><span>₩220,000</span></div>
+<p class="note">📷 <a class="link" href="https://www.instagram.com/mallang__id" target="_blank">@mallang__id</a></p>
+<p class="note">📷 <a class="link" href="https://www.instagram.com/mallang__photo" target="_blank">@mallang__photo</a></p>`,
+
+  booking: `<h4>📅 예약하기 / Reservation</h4>
+<p class="note" style="margin-bottom:0.8rem;">
+• 예약일 기준 2일 전 오후 6시(KST)까지 취소 및 환불이 가능합니다.<br>
+• 1시간 이내에 예약금 결제가 가능하시면 아래 내용을 작성해 주세요.<br>
+• 총금액에서 예약금을 제외한 나머지 금액을 현장에서 결제합니다.<br>
+• 예약금 결제 후 스크린샷을 꼭 이곳에 남겨주세요. 그렇지 못할 경우 예약이 확정되지 않습니다.
+</p>
+<div style="border-top:2px dashed #DDD;margin:1rem 0;"></div>
+<p><b>날짜 :</b> 월 / 일 ( 요일 )</p>
+<p><b>시간 :</b></p>
+<p><b>이름(영문) :</b></p>
+<p><b>인원 :</b></p>
+<p><b>원하시는 서비스 :</b></p>
+<p><b>결제 방법 :</b></p>
+<p class="note">🇨🇳 중국 : 위챗페이, 알리페이<br>🇯🇵 일본 : 계좌이체 (페이페이 은행)<br>💳 공용 : 카드결제</p>
+<button onclick="copyBookingForm()" style="margin-top:1rem;width:100%;padding:0.7rem;background:#C9A063;color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.9rem;">📋 복사하기 (Copy)</button>`
+};
+
+function showMenu(tab) {
+  document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('menuContent').innerHTML = menuData[tab] || '';
+}
+
+function showPriceMenu() { toggleMobileMenu(); }
+function toggleMobileMenu() {
+  const sidebar = document.getElementById('menuSidebar');
+  const overlay = document.getElementById('menuOverlay');
+  sidebar.classList.toggle('mobile-open');
+  overlay.classList.toggle('active');
+  if (sidebar.classList.contains('mobile-open') && !document.getElementById('menuContent').innerHTML) {
+    showMenu('makeup');
+  }
+}
+function closeMobileMenu() {
+  document.getElementById('menuSidebar').classList.remove('mobile-open');
+  document.getElementById('menuOverlay').classList.remove('active');
+}
+
+function copyBookingForm() {
+  const text = `날짜 : 월 / 일 ( 요일 )
+시간 :
+이름(영문) :
+인원 :
+원하시는 서비스 :
+결제 방법 :`;
+  navigator.clipboard.writeText(text).then(() => {
+    event.target.textContent = '✅ 복사완료!';
+    setTimeout(() => { event.target.textContent = '📋 복사하기 (Copy)'; }, 2000);
+  });
+}
+
+// ========================================
+// 유틸리티
+// ========================================
+function getFlag(lang) {
+  const flags = { ko: '🇰🇷', en: '🌐', zh: '🇨🇳', ja: '🇯🇵', th: '🇹🇭', vi: '🇻🇳' };
+  return flags[lang] || '🌐';
+}
+
+function formatTime(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  const now = new Date();
+  const diff = now - d;
+  if (diff < 60000) return '방금';
+  if (diff < 3600000) return Math.floor(diff/60000) + '분 전';
+  if (diff < 86400000) return Math.floor(diff/3600000) + '시간 전';
+  return (d.getMonth()+1) + '/' + d.getDate();
+}
+
+function previewText(text) {
+  if (!text) return '새로운 대화';
+  let t = text.replace(/\[WECHAT_QR\]/g, '🇨🇳 위챗페이').replace(/\[DIRECTIONS_BTN\]/g, '').replace(/\n/g, ' ').trim();
+  if (t.length > 35) t = t.substring(0, 35) + '...';
+  return escapeHtml(t);
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.appendChild(document.createTextNode(text));
+  return div.innerHTML;
+}
+
+function renderMessage(text) {
+  if (!text) return '';
+  let html = escapeHtml(text);
+  html = html.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" class="msg-link">$1</a>');
+  html = html.replace('[WECHAT_QR]', '<img src="' + WECHAT_QR + '" class="msg-img" alt="WeChat Pay QR">');
+  html = html.replace('[DIRECTIONS_BTN]', '<a href="https://www.instagram.com/reel/DIvxoGwy482/?igsh=MTI5cW8wM3MwNGM1OA==" target="_blank" class="msg-link-btn">📍 How to get here (Video)</a>');
+  html = html.replace(/\*\*(.+?)\*\*/g, '<span class="msg-highlight">$1</span>');
+  html = html.replace(/\[CENTER\](.*?)\[\/CENTER\]\n?/g, '<div style="text-align:center;margin:-0.2em 0;padding:0;line-height:1.2;">$1</div>');
+  html = html.replace(/\n/g, '<br>');
+  return html;
+}
+
+function getAuthErrorMsg(code) {
+  const msgs = {
+    'auth/email-already-in-use': '이미 등록된 이메일입니다 / Email already in use',
+    'auth/invalid-email': '올바른 이메일을 입력해주세요 / Invalid email',
+    'auth/weak-password': '비밀번호가 너무 약합니다 / Password too weak',
+    'auth/user-not-found': '등록되지 않은 이메일입니다 / Email not found',
+    'auth/wrong-password': '비밀번호가 틀렸습니다 / Wrong password',
+    'auth/invalid-credential': '이메일 또는 비밀번호가 틀렸습니다 / Invalid credentials',
+    'auth/too-many-requests': '잠시 후 다시 시도해주세요 / Too many attempts'
+  };
+  return msgs[code] || '오류가 발생했습니다 (' + code + ')';
+}
+
+// ========================================
+// 입력창 자동 크기
+// ========================================
+function autoResize(el) {
+  el.style.height = 'auto';
+  const maxH = 120;
+  if (el.scrollHeight > maxH) {
+    el.style.height = maxH + 'px';
+    el.style.overflowY = 'auto';
+  } else {
+    el.style.height = el.scrollHeight + 'px';
+    el.style.overflowY = 'hidden';
+  }
+}
+
+// 이벤트 리스너
+document.getElementById('chatInput').addEventListener('input', function() { autoResize(this); });
+document.getElementById('staffInput').addEventListener('input', function() { autoResize(this); });
+document.getElementById('chatInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendChatMsg(); }
 });
+document.getElementById('staffInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendStaffMsg(); }
+});
+document.getElementById('loginPw').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+document.getElementById('signupPw').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSignup();
+});
+
+// 초기 메뉴 로드
+showMenu('makeup');
 </script>
 </body>
 </html>
