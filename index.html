@@ -620,8 +620,12 @@ function showScreen(id) {
 // ========================================
 function setRole(role) {
   signupRole = role;
-  document.querySelectorAll('#roleToggle button').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
+  document.querySelectorAll('#roleToggle button').forEach(b => {
+    b.classList.remove('active');
+    if ((role === 'customer' && b.textContent.includes('고객')) || (role === 'designer' && b.textContent.includes('디자이너'))) {
+      b.classList.add('active');
+    }
+  });
   const df = document.getElementById('designerFields');
   if (role === 'designer') {
     df.classList.add('show');
@@ -1542,8 +1546,12 @@ const menuData = {
 };
 
 function showMenu(tab) {
-  document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
+  document.querySelectorAll('.menu-tab').forEach(t => {
+    t.classList.remove('active');
+    if (t.textContent.includes(tab === 'makeup' ? '메이크업' : tab === 'hair' ? '헤어' : tab === 'spa' ? '스파' : tab === 'photo' ? '포토' : '예약')) {
+      t.classList.add('active');
+    }
+  });
   document.getElementById('menuContent').innerHTML = menuData[tab] || '';
 }
 
@@ -1569,9 +1577,10 @@ function copyBookingForm() {
 인원 :
 원하시는 서비스 :
 결제 방법 :`;
+  const btn = document.querySelector('[onclick="copyBookingForm()"]');
   navigator.clipboard.writeText(text).then(() => {
-    event.target.textContent = '✅ 복사완료!';
-    setTimeout(() => { event.target.textContent = '📋 복사하기 (Copy)'; }, 2000);
+    btn.textContent = '✅ 복사완료!';
+    setTimeout(() => { btn.textContent = '📋 복사하기 (Copy)'; }, 2000);
   });
 }
 
